@@ -60,19 +60,21 @@ package "com.veterinaria.modelo" {
 
   class Turno {
     - id : Long
-    - fechaHora : LocalDateTime
     - estado : EstadoTurno
     - mascota : Mascota
     - veterinario : Veterinario
     - detalles : List<DetalleTurno>
-    + agregarServicio(servicio : Servicio) : void
+    + agregarServicio(servicio : Servicio, inicio : LocalDateTime) : void
+    + getVeterinario() : Optional<Veterinario>
+    + requiereVeterinario() : boolean
     + confirmar() : void
     + cancelar(fechaActual : LocalDateTime) : void
     + atender() : void
     + calcularImporte() : BigDecimal
     + calcularDuracionTotal() : int
+    + calcularDuracionTranscurrida() : long
+    + calcularFechaHoraInicio() : LocalDateTime
     + calcularFechaHoraFin() : LocalDateTime
-    + seSolapaCon(otroTurno : Turno) : boolean
     + incluyeConsultaMedica() : boolean
   }
 
@@ -82,7 +84,10 @@ package "com.veterinaria.modelo" {
     - precioCongelado : BigDecimal
     - duracionMinutos : int
     - observaciones : String
-    + DetalleTurno(servicio : Servicio)
+    - fechaHoraInicio : LocalDateTime
+    + DetalleTurno(servicio : Servicio, inicio : LocalDateTime)
+    + calcularFechaHoraFin() : LocalDateTime
+    + seSolapaCon(otroDetalle : DetalleTurno) : boolean
     + registrarObservaciones(observaciones : String) : void
     + obtenerPrecio() : BigDecimal
     + obtenerDuracion() : int
@@ -98,17 +103,20 @@ package "com.veterinaria.modelo" {
     + calcularImporte() : BigDecimal
     + getDuracionMinutos() : int
     {abstract} + requiereRegistroMedico() : boolean
+    {abstract} + requiereVeterinario() : boolean
     + darDeBaja() : void
   }
 
   class ConsultaMedica {
     + requiereRegistroMedico() : boolean
+    + requiereVeterinario() : boolean
     + crearRegistroMedico(fecha : LocalDateTime, diagnostico : String, tratamiento : String) : RegistroMedico
   }
 
   class ServicioVacunacion {
     - vacuna : Vacuna
     + requiereRegistroMedico() : boolean
+    + requiereVeterinario() : boolean
     + validarAplicacion(mascota : Mascota, fecha : LocalDate) : void
     + crearAplicacion(mascota : Mascota, veterinario : Veterinario, fecha : LocalDate) : AplicacionVacuna
   }
@@ -116,12 +124,14 @@ package "com.veterinaria.modelo" {
   class Guarderia {
     - cupoMaximoDiario : int
     + requiereRegistroMedico() : boolean
+    + requiereVeterinario() : boolean
     + tieneCupo(cantidadReservada : int) : boolean
     + actualizarCupo(nuevoCupo : int) : void
   }
 
   class Peluqueria {
     + requiereRegistroMedico() : boolean
+    + requiereVeterinario() : boolean
   }
 
   class RegistroMedico {
@@ -157,9 +167,10 @@ package "com.veterinaria.modelo" {
   }
 
   class GestorTurnos <<domain service>> {
-    + programarTurno(mascota : Mascota, veterinario : Veterinario, fecha : LocalDateTime, servicios : List<Servicio>) : Turno
-    + validarDisponibilidadMascota(mascota : Mascota, inicio : LocalDateTime, duracion : int) : void
-    + validarDisponibilidadVeterinario(veterinario : Veterinario, inicio : LocalDateTime, duracion : int) : void
+    + programarTurno(mascota : Mascota, veterinario : Optional<Veterinario>, detalles : List<DetalleTurno>) : Turno
+    + validarDisponibilidadMascota(turno : Turno) : void
+    + validarDisponibilidadVeterinario(turno : Turno) : void
+    + validarCupoGuarderia(turno : Turno) : void
   }
 
   enum EstadoTurno {
@@ -195,7 +206,7 @@ package "com.veterinaria.modelo" {
 
   Cliente "1" -- "0..*" Mascota : es responsable de >
   Mascota "1" -- "0..*" Turno : tiene >
-  Veterinario "1" -- "0..*" Turno : tiene asignados >
+  Veterinario "0..1" -- "0..*" Turno : participa en >
   Turno "1" *-- "1..*" DetalleTurno : contiene >
   DetalleTurno "0..*" --> "1" Servicio : corresponde a
 
@@ -222,6 +233,10 @@ note right of Turno
   - Debe contener al menos un servicio.
   - No repite la identidad de un servicio.
   - PENDIENTE y CONFIRMADO reservan horario.
+  - Veterinario obligatorio solo si hay
+    consulta o vacunación; en otro caso, ausente.
+  - Inicio = mínimo de inicios de detalles.
+  - Fin = máximo de finales de detalles.
   - PENDIENTE -> CONFIRMADO -> ATENDIDO.
   - PENDIENTE o CONFIRMADO -> CANCELADO.
   - Solo se cancela con más de 24 horas.
@@ -231,13 +246,22 @@ note right of DetalleTurno
   Conserva el precio y la duración
   vigentes al crear el turno.
   Observaciones opcionales de cada atención.
+  Cada servicio tiene su propio inicio.
+  Fin = inicio + duración congelada.
 end note
 
 note right of Guarderia
-  Pendiente de consulta al docente:
-  cupo total diario o simultáneo;
-  bloqueo de agenda durante la estadía.
-  El cupo diario del modelo es provisional.
+  Cupo total por día, sin reutilizar
+  lugares por franjas horarias.
+  Cancelar libera el lugar; retirarse antes, no.
+  No requiere ni ocupa al veterinario.
+  Permite otras atenciones durante la estadía.
+end note
+
+note bottom of Servicio
+  requiereVeterinario():
+  ConsultaMedica y ServicioVacunacion = true.
+  Guarderia y Peluqueria = false.
 end note
 
 note right of Veterinario

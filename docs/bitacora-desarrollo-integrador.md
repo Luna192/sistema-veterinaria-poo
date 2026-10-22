@@ -156,6 +156,8 @@ Se determinó que un turno debe conocer:
 - Veterinario.
 - Servicios contratados.
 
+En la revisión del 22/10/2026 se sustituyó la fecha y hora general almacenada por un inicio propio de cada `DetalleTurno`. El inicio y el final del turno pasan a calcularse desde los detalles. El veterinario pasó a ser condicional según los servicios incluidos.
+
 No se agregó un atributo `cliente` en `Turno`, porque el responsable puede conocerse mediante:
 
 ```text
@@ -397,14 +399,43 @@ El modelo de trabajo contiene:
 | Especialidades | Son informativas y no restringen la asignación de servicios. | No incorporar una restricción que el enunciado no exige. |
 | Peluquería | Se retira `validarTipoCorte()` y no se incorpora `TipoCorte`. Las indicaciones se registran como observaciones opcionales de `DetalleTurno`. | Conservar las indicaciones de cada atención sin crear un catálogo no requerido. |
 
-### Consultas pendientes para el docente
+### Consultas realizadas al docente, posteriormente resueltas
 
 1. ¿El cupo diario de guardería limita el total de mascotas recibidas en el día o la cantidad alojada simultáneamente? Con capacidad para diez, ¿pueden recibirse diez por la mañana y otras diez por la tarde si las estadías no se superponen?
 2. ¿La guardería bloquea la agenda del veterinario durante toda la estadía o deben distinguirse el horario de alojamiento y el de atención profesional?
 
-El atributo de cupo diario permanece provisional. Hasta obtener respuesta, no se incorpora una excepción a la regla general de no solapamiento del veterinario.
+Estas consultas se encontraban pendientes en la primera revisión. Sus respuestas y los cambios posteriores se registran a continuación.
 
 **Archivos afectados:** modelo PlantUML, reglas de negocio, casos de uso y esta bitácora. Las decisiones corresponden al diseño; todavía no se implementaron en Java.
+
+### 6.1. Aclaraciones del docente y ajuste de horarios — 22/10/2026
+
+La alumna comunicó las siguientes respuestas del docente:
+
+- El cupo de guardería corresponde a la cantidad de mascotas permitidas por día. Se adopta el control diario, sin reutilización del cupo por franjas horarias.
+- Las especialidades son información para el administrador; la selección queda a criterio del personal, sin restricciones automáticas por especialidad.
+- Guardería y peluquería no corresponden a las responsabilidades del veterinario ni deben ocupar su agenda.
+
+A partir de esas aclaraciones se acordaron las siguientes decisiones de diseño:
+
+| Elemento | Modificación | Justificación |
+|---|---|---|
+| Guardería | Se conserva como subclase de `Servicio` dentro del turno. No se incorpora `ReservaGuarderia`. | Mantener la estructura de servicios prevista en el trabajo. |
+| Turno–Veterinario | La multiplicidad pasa de `1` a `0..1`. Es obligatorio para consulta o vacunación y está ausente si solo hay guardería o peluquería. | Representar la participación real del profesional. |
+| `Servicio` | Se incorpora `requiereVeterinario()` con implementación en cada subclase. | Determinar los recursos requeridos mediante comportamiento polimórfico. |
+| `DetalleTurno` | Se incorpora `fechaHoraInicio` y se calcula su final con la duración congelada. | Registrar cuándo se realiza cada prestación. |
+| Inicio y final del turno | Se calculan como el menor inicio y el mayor final de sus detalles. Se elimina la fecha y hora general almacenada. | Evitar duplicación de horarios y permitir atenciones durante la estadía. |
+| Duraciones | Se distingue la suma de duraciones de servicios del tiempo transcurrido entre el primer inicio y el último final. | No bloquear la agenda usando la duración de guardería ni sumar dos veces prestaciones superpuestas. |
+| Disponibilidad | `GestorTurnos` compara los intervalos de cada prestación y los recursos que requiere. | Permitir atención durante guardería e impedir consultas, vacunas o peluquerías simultáneas de la misma mascota. |
+| Cupo diario | Pendientes, confirmadas y atendidas consumen cupo; las canceladas lo liberan. Una salida anticipada no habilita otra admisión. | Aplicar el límite diario sin franjas horarias. |
+
+Ejemplo de programación utilizado para comprobar el diseño: guardería de 8:00 a 18:00, consulta de 10:00 a 10:30 y peluquería de 15:00 a 16:00. La mascota ocupa un lugar de guardería para esa fecha y el veterinario solo queda reservado de 10:00 a 10:30.
+
+Las decisiones sobre horarios por detalle y multiplicidades son propuestas de diseño acordadas con la alumna, derivadas de las respuestas del docente. No se atribuyen al docente indicaciones técnicas sobre clases o métodos.
+
+**Archivos afectados:** `modelo_dominio_veterinaria.puml`, `reglas-negocio.md`, `casos-de-uso.md`, imagen del diagrama de clases y esta bitácora.
+
+**Verificación:** revisión de coherencia entre reglas, multiplicidades y flujos; validación sintáctica y regeneración del PlantUML. El código Java continúa pendiente.
 
 ---
 

@@ -117,26 +117,26 @@ En la primera versión ambos pueden utilizar la misma aplicación sin autenticac
 
 **Actor principal:** usuario administrativo.
 
-**Objetivo:** reservar una fecha y hora para una mascota con un veterinario y servicios determinados.
+**Objetivo:** registrar servicios para una mascota con sus horarios y reservar los recursos correspondientes.
 
 **Pantalla:** gestión de turnos.
 
-**Precondiciones:** existen una mascota activa, un veterinario activo y al menos un servicio activo.
+**Precondiciones:** existen una mascota activa y al menos un servicio activo. Si se incluye consulta o vacunación, existe un veterinario activo para asignar.
 
 ### Flujo principal
 
 1. El usuario selecciona “Nuevo turno”.
-2. Selecciona mascota y veterinario.
-3. Ingresa una fecha y hora futuras o selecciona atención inmediata para un cliente sin reserva previa.
-4. Selecciona uno o más servicios sin repetir la identidad de ninguno.
-5. El sistema crea temporalmente los detalles y calcula la duración total.
-6. `GestorTurnos` calcula el intervalo del turno.
-7. Comprueba la disponibilidad de la mascota.
-8. Comprueba la disponibilidad del veterinario.
+2. Selecciona la mascota y uno o más servicios sin repetir la identidad de ninguno.
+3. Ingresa una fecha y hora de inicio para cada servicio o selecciona atención inmediata para un cliente sin reserva previa.
+4. Si algún servicio requiere veterinario, selecciona un profesional activo. Sus especialidades se muestran como información para el personal. Si solo hay guardería o peluquería, no se asigna veterinario.
+5. El sistema crea temporalmente los detalles con precio y duración congelados y calcula el final de cada prestación.
+6. `GestorTurnos` valida la programación: el inicio general es el menor inicio y el final general es el mayor final de los detalles.
+7. Comprueba la disponibilidad de la mascota para consulta, vacunación y peluquería, permitiendo esas atenciones durante la guardería. También comprueba los detalles del propio turno entre sí.
+8. Comprueba la disponibilidad del veterinario solo en los intervalos de consulta y vacunación. Si hay guardería, comprueba el cupo total diario y que no exista otra reserva de guardería de la misma mascota para esa fecha.
 9. Crea el turno en estado `PENDIENTE`.
 10. Cada detalle conserva el precio y la duración vigentes.
 11. Si el cliente ya aceptó el horario, el usuario elige “Guardar y confirmar”: se ejecuta `confirmar()` y se guardan la creación y la confirmación en una misma transacción. En caso contrario elige “Guardar pendiente”.
-12. El sistema muestra el estado y el importe total. En ambos casos el turno guardado reserva el intervalo.
+12. El sistema muestra el estado, el importe y los horarios de los servicios. En ambos casos el turno guardado reserva los recursos correspondientes a cada detalle.
 
 ### Flujos alternativos
 
@@ -148,10 +148,12 @@ En la primera versión ambos pueden utilizar la misma aplicación sin autenticac
 - **A6. Guardería sin cupo:** no se permite agregar o confirmar ese servicio.
 - **A7. Servicio repetido:** se rechaza el segundo detalle con la misma identidad de servicio.
 - **A8. Error al guardar y confirmar:** se revierte la operación completa; no queda una reserva incompleta.
+- **A9. Profesional requerido ausente:** se rechaza un turno con consulta o vacunación si no se seleccionó un veterinario.
+- **A10. Guardería duplicada:** se rechaza una segunda reserva no cancelada para la misma mascota y fecha.
 
 **Postcondición de éxito:** existe un turno pendiente o confirmado, según la opción elegida, con al menos un detalle, servicios sin duplicados y valores históricos congelados.
 
-**Reglas relacionadas:** RN-TUR-01 a RN-TUR-17, RN-EST-08 y RN-SER-01 a RN-SER-06.
+**Reglas relacionadas:** RN-TUR-01 a RN-TUR-18, RN-EST-08, RN-SER-01 a RN-SER-07 y RN-GUA-01 a RN-GUA-06.
 
 ---
 
@@ -198,14 +200,14 @@ En la primera versión ambos pueden utilizar la misma aplicación sin autenticac
 3. El sistema proporciona la fecha y hora actual a `turno.cancelar(...)`.
 4. El turno verifica que falten más de 24 horas.
 5. El estado cambia a `CANCELADO`.
-6. Se guarda el cambio y se libera el horario.
+6. Se guarda el cambio y se liberan los intervalos de atención reservados y, si corresponde, el lugar de guardería para la fecha del servicio.
 
 ### Flujos alternativos
 
 - **A1. Fuera de término:** se lanza `CancelacionFueraDeTerminoException`.
 - **A2. Turno atendido o cancelado:** se lanza `TransicionEstadoInvalidaException`.
 
-**Postcondición de éxito:** el turno continúa almacenado como cancelado y su horario queda disponible.
+**Postcondición de éxito:** el turno continúa almacenado como cancelado y sus recursos quedan disponibles.
 
 **Reglas relacionadas:** RN-EST-03 a RN-EST-07.
 
@@ -213,7 +215,7 @@ En la primera versión ambos pueden utilizar la misma aplicación sin autenticac
 
 ## CU-07 — Atender turno
 
-**Actor principal:** veterinario.
+**Actor principal:** veterinario para los resultados clínicos y personal de la veterinaria para registrar la realización de guardería o peluquería.
 
 **Objetivo:** registrar los resultados de los servicios y finalizar la atención.
 
@@ -223,14 +225,14 @@ En la primera versión ambos pueden utilizar la misma aplicación sin autenticac
 
 ### Flujo principal
 
-1. El veterinario selecciona el turno confirmado.
+1. El personal selecciona el turno confirmado; las decisiones clínicas corresponden al veterinario asignado.
 2. El sistema identifica los tipos concretos de servicios incluidos.
 3. Si existe una consulta médica, solicita diagnóstico y tratamiento.
 4. `ConsultaMedica` valida y crea el `RegistroMedico`.
 5. Por cada servicio de vacunación, el sistema identifica la vacuna correspondiente.
 6. `ServicioVacunacion` comprueba que la mascota no tenga esa vacuna vigente.
 7. Crea la `AplicacionVacuna` con el veterinario asignado al turno y calcula la próxima dosis.
-8. El turno ejecuta `atender()`.
+8. Una vez realizados los servicios del turno, este ejecuta `atender()`. Un turno exclusivamente de guardería o peluquería se completa sin asignarle un veterinario ni generar registros clínicos obligatorios.
 9. El estado cambia a `ATENDIDO`.
 10. Se guardan conjuntamente el turno y los registros generados. Las indicaciones particulares, incluidas las de peluquería, pueden registrarse como observaciones opcionales de cada detalle.
 
@@ -264,7 +266,7 @@ En la primera versión ambos pueden utilizar la misma aplicación sin autenticac
 3. El usuario selecciona una mascota.
 4. El sistema recupera sus turnos atendidos, detalles, registros médicos y aplicaciones de vacunas.
 5. Ordena los acontecimientos cronológicamente.
-6. Muestra fecha, veterinario, servicios, diagnóstico, tratamiento y vacunas correspondientes.
+6. Muestra las fechas y horarios de los detalles, servicios, diagnóstico, tratamiento y vacunas correspondientes. Informa el veterinario cuando lo hay y muestra “No corresponde” para servicios sin participación profesional.
 7. Opcionalmente filtra por tipo de servicio o rango de fechas.
 
 ### Flujos alternativos

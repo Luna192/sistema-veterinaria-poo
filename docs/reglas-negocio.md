@@ -30,7 +30,7 @@ Este documento convierte el enunciado y el modelo de dominio en reglas verificab
 
 - **RN-VET-01. Matrícula obligatoria y única:** todo veterinario tendrá una matrícula profesional no vacía y no repetida.
 - **RN-VET-02. Especialidades:** un veterinario puede poseer una o más especialidades sin duplicados.
-- **RN-VET-03. Disponibilidad:** un veterinario no puede tener dos turnos que se solapen.
+- **RN-VET-03. Disponibilidad:** un veterinario no puede participar en prestaciones veterinarias con intervalos superpuestos. Se comparan los detalles de consulta y vacunación, no la estadía ni el intervalo general del turno.
 - **RN-VET-04. Baja lógica:** un veterinario desactivado conserva las atenciones históricas, pero no puede asignarse a turnos nuevos.
 - **RN-VET-05. Alcance de las especialidades:** las especialidades son información profesional y no restringen los servicios asignables al veterinario.
 
@@ -38,21 +38,22 @@ Este documento convierte el enunciado y el modelo de dominio en reglas verificab
 
 - **RN-SER-01. Servicio válido:** todo servicio debe tener nombre, precio base no negativo y duración positiva en minutos.
 - **RN-SER-02. Facturación:** todo servicio es facturable.
-- **RN-SER-03. Duración:** todo servicio contribuye a la duración total del turno.
+- **RN-SER-03. Duración:** cada servicio aporta una duración que se conserva en su detalle. La suma de esas duraciones expresa el total de prestaciones, pero no determina la ocupación del veterinario ni necesariamente el tiempo transcurrido del turno.
 - **RN-SER-04. Disponibilidad:** un servicio inactivo no puede agregarse a turnos nuevos.
 - **RN-SER-05. Tipos concretos:** no se crean instancias directas de `Servicio`; se utilizan `ConsultaMedica`, `ServicioVacunacion`, `Guarderia` o `Peluqueria`.
 - **RN-SER-06. Comportamiento polimórfico:** cada tipo de servicio define si requiere registro médico y aplica sus reglas particulares.
+- **RN-SER-07. Participación profesional:** `requiereVeterinario()` devuelve verdadero para consulta y vacunación y falso para guardería y peluquería. El modelo utiliza ese comportamiento para determinar cuándo es obligatoria la asignación de un veterinario.
 
 ## 5. Turnos
 
 ### Creación y contenido
 
-- **RN-TUR-01. Participantes obligatorios:** todo turno corresponde a una mascota y a un veterinario.
+- **RN-TUR-01. Participantes:** todo turno corresponde a una mascota. Tiene un único veterinario obligatorio si incluye consulta o vacunación. Si contiene exclusivamente guardería o peluquería, no se le asigna veterinario.
 - **RN-TUR-02. Servicios obligatorios:** todo turno contiene al menos un servicio; no existen turnos vacíos.
-- **RN-TUR-03. Fecha de inicio:** una reserva se programa para una fecha futura. Para una atención sin reserva previa, el sistema permite iniciar el turno en el momento actual, verificando la disponibilidad para todo su intervalo. No se programan turnos nuevos con inicio pasado.
+- **RN-TUR-03. Fecha de inicio:** cada detalle de una reserva se programa para una fecha y hora futuras. Para atención sin reserva previa se permite utilizar el momento actual, comprobando la disponibilidad de los intervalos correspondientes. No se programan prestaciones nuevas con inicio pasado.
 - **RN-TUR-04. Estado inicial:** todo turno nuevo comienza en estado `PENDIENTE`.
-- **RN-TUR-05. Duración total:** la duración del turno es la suma de las duraciones congeladas de sus detalles.
-- **RN-TUR-06. Hora de finalización:** se obtiene sumando la duración total a la fecha y hora inicial.
+- **RN-TUR-05. Duraciones:** `calcularDuracionTotal()` suma las duraciones congeladas de los detalles. `calcularDuracionTranscurrida()` calcula los minutos entre el primer inicio y el último final, incluyendo esperas y sin sumar dos veces intervalos superpuestos. La suma no se utiliza para bloquear agendas.
+- **RN-TUR-06. Inicio y final derivados:** el inicio del turno es el inicio más temprano de sus detalles; su final es el final más tardío. No se almacena otra fecha y hora general independiente de esos datos.
 - **RN-TUR-07. Precio final:** el importe del turno es la suma de los precios congelados de todos sus detalles.
 - **RN-TUR-08. Precio histórico:** cada `DetalleTurno` conserva el precio que tenía el servicio al incorporarse al turno.
 - **RN-TUR-09. Duración histórica:** cada `DetalleTurno` conserva también la duración utilizada al programar el turno.
@@ -61,18 +62,19 @@ Este documento convierte el enunciado y el modelo de dominio en reglas verificab
 
 ### Solapamientos
 
-- **RN-TUR-10. Solapamiento del veterinario:** no se acepta un turno cuyo intervalo se superponga con otro turno que ocupe al mismo veterinario.
-- **RN-TUR-11. Solapamiento de la mascota:** no se acepta un turno cuyo intervalo se superponga con otro turno que ocupe a la misma mascota.
-- **RN-TUR-12. Turnos contiguos:** si un turno termina exactamente cuando comienza otro, no existe solapamiento.
+- **RN-TUR-10. Solapamiento del veterinario:** se comparan únicamente los intervalos de detalles que requieren veterinario, tanto dentro del turno como frente a otras prestaciones asignadas al mismo profesional. Guardería y peluquería no reservan su agenda, aunque pertenezcan a un turno mixto.
+- **RN-TUR-11. Solapamiento de la mascota:** las consultas, vacunaciones y peluquerías de una misma mascota no pueden superponerse entre sí, dentro de un turno ni entre turnos diferentes. Una estadía de guardería puede contener esas atenciones sin provocar un conflicto de disponibilidad.
+- **RN-TUR-12. Intervalos contiguos:** si un detalle termina exactamente cuando comienza otro, no existe solapamiento. La comparación usa intervalos con inicio incluido y final excluido.
 - **RN-TUR-13. Cancelados:** los turnos cancelados liberan el horario y no participan en la validación de solapamientos.
 - **RN-TUR-14. Coordinación:** `GestorTurnos` valida los solapamientos porque necesita consultar el conjunto de turnos existentes.
-- **RN-TUR-17. Reserva de horario:** los turnos `PENDIENTE` y `CONFIRMADO` guardados reservan el intervalo de la mascota y del veterinario. La búsqueda de horarios por sí sola no crea una reserva. No se prevé vencimiento automático de pendientes.
+- **RN-TUR-17. Reserva de recursos:** los detalles de turnos `PENDIENTE` y `CONFIRMADO` guardados reservan los recursos que corresponden a cada servicio: intervalo de atención de la mascota, intervalo del veterinario si se requiere y cupo diario de guardería cuando corresponda. La búsqueda de horarios por sí sola no reserva recursos. No se prevé vencimiento automático de pendientes. Las atenciones `ATENDIDO` conservan sus intervalos históricos y el cupo utilizado; `CANCELADO` no ocupa recursos.
+- **RN-TUR-18. Horario de cada prestación:** cada `DetalleTurno` guarda `fechaHoraInicio`; su final se calcula sumando su duración congelada. Los servicios pueden tener intervalos diferentes y existir esperas entre ellos.
 
 ### Estados
 
 - **RN-EST-01. Confirmación:** solamente un turno `PENDIENTE` puede pasar a `CONFIRMADO`.
 - **RN-EST-02. Atención:** solamente un turno `CONFIRMADO` puede pasar a `ATENDIDO`.
-- **RN-EST-03. Cancelación:** un turno `PENDIENTE` o `CONFIRMADO` puede pasar a `CANCELADO` si faltan más de 24 horas.
+- **RN-EST-03. Cancelación:** un turno `PENDIENTE` o `CONFIRMADO` puede pasar a `CANCELADO` si faltan más de 24 horas respecto al inicio calculado del turno, es decir, el primer servicio.
 - **RN-EST-04. Límite exacto:** si faltan exactamente 24 horas o menos, no se permite cancelar, siguiendo la redacción “más de veinticuatro horas” del enunciado.
 - **RN-EST-05. Estado atendido terminal:** un turno `ATENDIDO` no puede cambiar a otro estado.
 - **RN-EST-06. Estado cancelado terminal:** un turno `CANCELADO` no puede reactivarse.
@@ -106,10 +108,15 @@ Este documento convierte el enunciado y el modelo de dominio en reglas verificab
 
 ## 8. Guardería y peluquería
 
-- **RN-GUA-01. Capacidad:** la guardería no puede aceptar reservas que superen su cupo máximo.
+- **RN-GUA-01. Capacidad diaria:** la guardería no puede admitir más mascotas que el cupo máximo configurado para una fecha. Se cuentan las mascotas con guardería no cancelada para ese día, incluyendo pendientes, confirmadas y atendidas. No se calcula capacidad por franjas horarias.
 - **RN-GUA-02. Cupo positivo:** el cupo máximo debe ser mayor que cero.
+- **RN-GUA-03. Liberación:** cancelar la reserva libera el lugar. La salida anticipada de una mascota no habilita otra admisión que supere el total diario.
+- **RN-GUA-04. Fecha de cupo:** la fecha del detalle de guardería identifica el día al que se imputa el cupo. Su intervalo describe la estadía prevista, sin habilitar reutilización horaria del lugar. El alcance corresponde a guardería de día.
+- **RN-GUA-05. Atención compatible:** una mascota alojada puede recibir consulta, vacunación o peluquería durante la estadía, dentro del mismo turno o mediante otro turno, respetando la disponibilidad de los recursos de esas atenciones.
+- **RN-GUA-06. Reserva duplicada:** no se registra una segunda reserva no cancelada de guardería para la misma mascota en la misma fecha.
 - **RN-PEL-01. Indicaciones:** las indicaciones de peluquería se registran como observaciones opcionales en el `DetalleTurno`. No se define un catálogo cerrado `TipoCorte` ni la operación `validarTipoCorte()`.
 - **RN-PEL-02. Registro médico:** la peluquería no genera obligatoriamente un registro médico.
+- **RN-PEL-03. Agenda:** la peluquería reserva el intervalo de atención de la mascota, pero no requiere ni bloquea a un veterinario. No se incorpora una agenda de peluqueros en este alcance.
 
 ## 9. Excepciones de dominio previstas
 
@@ -120,16 +127,16 @@ Este documento convierte el enunciado y el modelo de dominio en reglas verificab
 - `TransicionEstadoInvalidaException`: cambio de estado no permitido.
 - `CancelacionFueraDeTerminoException`: cancelación con 24 horas o menos.
 - `VacunaVigenteException`: intento de reaplicar una vacuna vigente.
-- `CupoGuarderiaAgotadoException`: capacidad agotada según el criterio de cupo que se confirme con el docente.
+- `CupoGuarderiaAgotadoException`: cupo diario agotado.
 - `ServicioRepetidoException`: intento de incorporar nuevamente la misma identidad de servicio a un turno.
+- `VeterinarioRequeridoException`: falta de profesional en un turno con consulta o vacunación.
 
-## 10. Decisiones pendientes de confirmación
+## 10. Aclaraciones del docente y decisiones adoptadas — 22/10/2026
 
-Quedan dos consultas al docente antes de cerrar la implementación de guardería:
+Según la respuesta del docente transmitida por la alumna, el cupo se interpreta por día, las especialidades son informativas y el veterinario no participa en guardería ni peluquería.
 
-1. ¿El cupo diario limita el total de mascotas recibidas durante el día o la cantidad alojada simultáneamente? Con capacidad para diez, ¿pueden recibirse diez por la mañana y otras diez por la tarde si sus estadías no se superponen?
-2. ¿Toda la estadía de guardería bloquea la agenda del veterinario asignado o deben distinguirse el intervalo de alojamiento y el de atención profesional?
+Para reflejar esas aclaraciones se conserva `Turno` con sus servicios, sin crear `ReservaGuarderia`. Se asigna un inicio propio a cada detalle, se deriva el intervalo general y se valida la disponibilidad según el recurso requerido. Estas son decisiones de diseño adoptadas por la alumna, no indicaciones textuales del docente.
 
-Hasta obtener respuesta, el cupo diario del UML es provisional y se conserva la regla general de no solapamiento del veterinario; no se ha aprobado una excepción para guardería.
+Las consultas de guardería antes pendientes quedan resueltas con este criterio. La implementación Java todavía no comenzó.
 
 
