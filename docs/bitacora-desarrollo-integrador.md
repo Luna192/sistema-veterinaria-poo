@@ -3,10 +3,10 @@
 ## Sistema de Gestión Veterinaria
 
 **Cátedra:** Programación Orientada a Objetos I  
-**Docente:** Profesor Biale  
-**Estudiante:** Luna Acosta  
+**Docente:** Claudio Omar Biale  
+**Alumna:** Acosta Araceli Luna  
 **Periodo documentado:** agosto–octubre de 2026  
-**Última actualización:** 21 de octubre de 2026
+**Última actualización:** 22 de octubre de 2026
 
 ---
 
@@ -45,7 +45,7 @@ Actualmente el proyecto se encuentra principalmente en las etapas de análisis y
 
 ## 3. Desarrollo de las etapas
 
-### Etapa 1 — Estudio de los fundamentos de POO
+### Etapa 1 — Revisión de los fundamentos de POO
 
 Antes de diseñar el sistema se trabajaron conceptos fundamentales:
 
@@ -58,17 +58,6 @@ Antes de diseñar el sistema se trabajaron conceptos fundamentales:
 - Validación de datos dentro de las clases.
 - Encapsulamiento y riesgos de los atributos públicos.
 - Asociaciones entre objetos.
-
-Ejemplo utilizado durante el aprendizaje:
-
-```java
-Mascota x = new Mascota("Toby", new BigDecimal("10.0"));
-Mascota y = x;
-
-x.actualizarPeso(new BigDecimal("11.0"));
-```
-
-Se concluyó que `x` e `y` observan el mismo peso porque ambas variables referencian la misma instancia.
 
 **Motivo de esta etapa:** comprender estas ideas era necesario para no construir clases que fueran solamente grupos de atributos y `setters` sin reglas propias.
 
@@ -350,8 +339,6 @@ También se definieron diez casos de uso distribuidos entre las tres pantallas:
 - Consultar historial.
 - Consultar vencimientos.
 - Registrar una vacunación directamente.
-
-**Aclaración:** un caso de uso representa un objetivo del usuario; no equivale necesariamente a una pantalla.
 
 ---
 
