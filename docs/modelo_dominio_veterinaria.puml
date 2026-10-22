@@ -1,0 +1,229 @@
+@startuml
+title Sistema de Gestión Veterinaria - Modelo de dominio
+
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam shadowing false
+hide empty members
+
+package "com.veterinaria.modelo" {
+
+  interface Facturable {
+    + calcularImporte() : BigDecimal
+  }
+
+  class Cliente {
+    - id : Long
+    - nombre : String
+    - apellido : String
+    - dni : String
+    - telefono : String
+    - email : String
+    - activo : boolean
+    - mascotas : List<Mascota>
+    + actualizarContacto(telefono : String, email : String) : void
+    + registrarMascota(numeroFicha : String, nombre : String, especie : Especie, raza : String, fechaNacimiento : LocalDate, peso : BigDecimal) : Mascota
+    + darDeBaja() : void
+    + getMascotas() : List<Mascota>
+  }
+
+  class Mascota {
+    - id : Long
+    - numeroFicha : String
+    - nombre : String
+    - especie : Especie
+    - raza : String
+    - fechaNacimiento : LocalDate
+    - peso : BigDecimal
+    - activa : boolean
+    - cliente : Cliente
+    + actualizarPeso(nuevoPeso : BigDecimal) : void
+    + calcularEdad(fechaActual : LocalDate) : int
+    + cambiarDatos(nombre : String, raza : String) : void
+    + darDeBaja() : void
+    + estaActiva() : boolean
+  }
+
+  class Veterinario {
+    - id : Long
+    - matricula : String
+    - nombre : String
+    - apellido : String
+    - especialidades : Set<Especialidad>
+    - activo : boolean
+    + agregarEspecialidad(especialidad : Especialidad) : void
+    + tieneEspecialidad(especialidad : Especialidad) : boolean
+    + darDeBaja() : void
+    + estaActivo() : boolean
+  }
+
+  class Turno {
+    - id : Long
+    - fechaHora : LocalDateTime
+    - estado : EstadoTurno
+    - mascota : Mascota
+    - veterinario : Veterinario
+    - detalles : List<DetalleTurno>
+    + agregarServicio(servicio : Servicio) : void
+    + confirmar() : void
+    + cancelar(fechaActual : LocalDateTime) : void
+    + atender() : void
+    + calcularImporte() : BigDecimal
+    + calcularDuracionTotal() : int
+    + calcularFechaHoraFin() : LocalDateTime
+    + seSolapaCon(otroTurno : Turno) : boolean
+    + incluyeConsultaMedica() : boolean
+  }
+
+  class DetalleTurno {
+    - id : Long
+    - servicio : Servicio
+    - precioCongelado : BigDecimal
+    - duracionMinutos : int
+    + DetalleTurno(servicio : Servicio)
+    + obtenerPrecio() : BigDecimal
+    + obtenerDuracion() : int
+  }
+
+  abstract class Servicio {
+    - id : Long
+    - nombre : String
+    - precioBase : BigDecimal
+    - duracionMinutos : int
+    - activo : boolean
+    + actualizarPrecio(nuevoPrecio : BigDecimal) : void
+    + calcularImporte() : BigDecimal
+    + getDuracionMinutos() : int
+    {abstract} + requiereRegistroMedico() : boolean
+    + darDeBaja() : void
+  }
+
+  class ConsultaMedica {
+    + requiereRegistroMedico() : boolean
+    + crearRegistroMedico(fecha : LocalDateTime, diagnostico : String, tratamiento : String) : RegistroMedico
+  }
+
+  class ServicioVacunacion {
+    - vacuna : Vacuna
+    + requiereRegistroMedico() : boolean
+    + validarAplicacion(mascota : Mascota, fecha : LocalDate) : void
+    + crearAplicacion(mascota : Mascota, fecha : LocalDate) : AplicacionVacuna
+  }
+
+  class Guarderia {
+    - cupoMaximoDiario : int
+    + requiereRegistroMedico() : boolean
+    + tieneCupo(cantidadReservada : int) : boolean
+    + actualizarCupo(nuevoCupo : int) : void
+  }
+
+  class Peluqueria {
+    + requiereRegistroMedico() : boolean
+    + validarTipoCorte(tipoCorte : String) : void
+  }
+
+  class RegistroMedico {
+    - id : Long
+    - fechaAtencion : LocalDateTime
+    - diagnostico : String
+    - tratamiento : String
+    + actualizarDiagnostico(diagnostico : String) : void
+    + actualizarTratamiento(tratamiento : String) : void
+  }
+
+  class Vacuna {
+    - id : Long
+    - nombreComercial : String
+    - enfermedadQuePreviene : String
+    - periodicidadMeses : int
+    - activa : boolean
+    + calcularProximaDosis(fechaAplicacion : LocalDate) : LocalDate
+    + estaVigente(ultimaAplicacion : LocalDate, fechaActual : LocalDate) : boolean
+    + actualizarPeriodicidad(meses : int) : void
+    + darDeBaja() : void
+  }
+
+  class AplicacionVacuna {
+    - id : Long
+    - fechaAplicacion : LocalDate
+    - fechaProximaDosis : LocalDate
+    - mascota : Mascota
+    - vacuna : Vacuna
+    + estaVigente(fechaActual : LocalDate) : boolean
+    + estaProximaAVencer(fechaActual : LocalDate, dias : int) : boolean
+  }
+
+  class GestorTurnos <<domain service>> {
+    + programarTurno(mascota : Mascota, veterinario : Veterinario, fecha : LocalDateTime, servicios : List<Servicio>) : Turno
+    + validarDisponibilidadMascota(mascota : Mascota, inicio : LocalDateTime, duracion : int) : void
+    + validarDisponibilidadVeterinario(veterinario : Veterinario, inicio : LocalDateTime, duracion : int) : void
+  }
+
+  enum EstadoTurno {
+    PENDIENTE
+    CONFIRMADO
+    ATENDIDO
+    CANCELADO
+  }
+
+  enum Especie {
+    PERRO
+    GATO
+    CONEJO
+    AVE
+    OTRO
+  }
+
+  enum Especialidad {
+    CLINICA_GENERAL
+    CIRUGIA
+    DERMATOLOGIA
+    CARDIOLOGIA
+    OTRA
+  }
+
+  Facturable <|.. Servicio
+  Facturable <|.. Turno
+
+  Servicio <|-- ConsultaMedica
+  Servicio <|-- ServicioVacunacion
+  Servicio <|-- Guarderia
+  Servicio <|-- Peluqueria
+
+  Cliente "1" -- "0..*" Mascota : es responsable de >
+  Mascota "1" -- "0..*" Turno : tiene >
+  Veterinario "1" -- "0..*" Turno : tiene asignados >
+  Turno "1" *-- "1..*" DetalleTurno : contiene >
+  DetalleTurno "0..*" --> "1" Servicio : corresponde a
+
+  Turno "1" *-- "0..1" RegistroMedico : puede generar >
+  Mascota "1" -- "0..*" AplicacionVacuna : recibe >
+  Vacuna "1" -- "0..*" AplicacionVacuna : corresponde a >
+  Turno "0..1" -- "0..*" AplicacionVacuna : registra >
+  ServicioVacunacion "0..*" --> "1" Vacuna : aplica
+  ServicioVacunacion ..> AplicacionVacuna : valida y crea
+  ConsultaMedica ..> RegistroMedico : crea
+
+  Turno --> EstadoTurno
+  Mascota --> Especie
+  Veterinario --> Especialidad
+
+  GestorTurnos ..> Turno : crea y valida
+  GestorTurnos ..> Mascota
+  GestorTurnos ..> Veterinario
+}
+
+note right of Turno
+  Reglas principales:
+  - Debe contener al menos un servicio.
+  - PENDIENTE -> CONFIRMADO -> ATENDIDO.
+  - PENDIENTE o CONFIRMADO -> CANCELADO.
+  - Solo se cancela con más de 24 horas.
+end note
+
+note right of DetalleTurno
+  Conserva el precio y la duración
+  vigentes al crear el turno.
+end note
+
+@enduml
