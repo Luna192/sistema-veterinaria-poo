@@ -433,22 +433,8 @@ Estas decisiones se documentarán cuando sean confirmadas o cuando se adopte una
 
 ---
 
-## 8.1. Registro del 22/10/2026: creación del repositorio
-
-Se creó el repositorio público `Luna192/sistema-veterinaria-poo` para conservar el historial del Trabajo Integrador Final.
-
-La primera organización publicada incluye:
-
-- `README.md`, con el objetivo, el alcance, las tecnologías previstas y las próximas etapas.
-- `.gitignore`, preparado para Java, Maven, los IDE y la base de datos H2.
-- `docs/modelo_dominio_veterinaria.puml`.
-- `docs/reglas-negocio.md`.
-- `docs/casos-de-uso.md`.
-- `docs/bitacora-desarrollo-integrador.md`.
-- `docs/imagenes/diagrama_clases_veterinaria.png`.
-- `docs/imagenes/diagrama_flujo_veterinaria.png`.
-
-También se actualizó el modelo PlantUML para explicitar que `ConsultaMedica` crea un `RegistroMedico` y que `ServicioVacunacion` valida y crea una `AplicacionVacuna`.
+RESOLVER DONDE COLOCAR ESTA ACTUALIZACIÓN!!!!
+Se actualizó el modelo PlantUML para explicitar que `ConsultaMedica` crea un `RegistroMedico` y que `ServicioVacunacion` valida y crea una `AplicacionVacuna`.
 
 ---
 
