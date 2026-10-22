@@ -1,0 +1,22 @@
+# Maven
+target/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# VS Code
+.vscode/
+
+# Base de datos H2 local
+*.mv.db
+*.trace.db
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
