@@ -29,12 +29,12 @@ Las clases que no tengan una pantalla propia —por ejemplo, `Veterinario`, `Ser
 
 ## Documentación
 
-- [Modelo de dominio en PlantUML](docs/modelo-dominio.puml)
+- [Modelo de dominio en PlantUML](docs/modelo_dominio_veterinaria.puml)
 - [Reglas de negocio](docs/reglas-negocio.md)
 - [Casos de uso](docs/casos-de-uso.md)
 - [Bitácora del desarrollo](docs/bitacora-desarrollo-integrador.md)
-- [Diagrama de clases](docs/imagenes/diagrama-clases-veterinaria.png)
-- [Diagrama de flujo](docs/imagenes/diagrama-flujo-veterinaria.png)
+- [Diagrama de clases](docs/imagenes/diagrama_clases_veterinaria.png)
+- [Diagrama de flujo](docs/imagenes/diagrama_flujo_veterinaria.png)
 
 ## Próximas etapas
 
