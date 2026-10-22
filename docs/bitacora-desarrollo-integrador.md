@@ -38,7 +38,7 @@ Actualmente el proyecto se encuentra principalmente en las etapas de análisis y
 | 8. Revisión del UML | Corregir responsabilidades y tipos de relaciones | Modelo de dominio de trabajo en PlantUML e imagen | Completada; sujeto a ajustes |
 | 9. Definición de pantallas | Reducir el alcance sin perder el flujo central | Tres pantallas principales | Completada |
 | 10. Reglas y casos de uso | Convertir el modelo en comportamiento verificable | Reglas numeradas y diez casos de uso | Primera versión completada |
-| 11. Preparación técnica | Crear repositorio y proyecto Maven | Estructura del proyecto | Pendiente |
+| 11. Preparación técnica | Crear repositorio y proyecto Maven | Repositorio creado; Maven pendiente | En curso |
 | 12. Implementación | Programar dominio, persistencia y JavaFX | Aplicación ejecutable | Pendiente |
 
 ---
@@ -422,7 +422,7 @@ Estas decisiones se documentarán cuando sean confirmadas o cuando se adopte una
 | Reglas de negocio | Primera versión documentada |
 | Casos de uso | Primera versión documentada |
 | Alcance de pantallas | Definido |
-| Repositorio GitHub | Pendiente de creación |
+| Repositorio GitHub | Creado y documentado: `Luna192/sistema-veterinaria-poo` |
 | Proyecto Maven | Pendiente |
 | Clases Java | Pendientes |
 | Pruebas | Pendientes |
@@ -435,15 +435,33 @@ Estas decisiones se documentarán cuando sean confirmadas o cuando se adopte una
 
 1. Revisar y aprobar las reglas de negocio y casos de uso.
 2. Actualizar el diagrama UML con las últimas dependencias.
-3. Crear el repositorio de GitHub.
-4. Generar la estructura Maven y los paquetes.
-5. Implementar enumeraciones y excepciones.
-6. Implementar el modelo de dominio sin interfaz gráfica.
-7. Crear pruebas para las reglas principales.
-8. Incorporar JPA, Hibernate y H2.
-9. Implementar repositorios y servicios de aplicación.
-10. Construir las tres pantallas JavaFX.
-11. Integrar, probar y preparar la entrega final.
+3. Generar la estructura Maven y los paquetes.
+4. Implementar enumeraciones y excepciones.
+5. Implementar el modelo de dominio sin interfaz gráfica.
+6. Crear pruebas para las reglas principales.
+7. Incorporar JPA, Hibernate y H2.
+8. Implementar repositorios y servicios de aplicación.
+9. Construir las tres pantallas JavaFX.
+10. Integrar, probar y preparar la entrega final.
+
+---
+
+## 8.1. Registro del 22/10/2026: creación del repositorio
+
+Se creó el repositorio público `Luna192/sistema-veterinaria-poo` para conservar el historial del Trabajo Integrador Final.
+
+La primera organización publicada incluye:
+
+- `README.md`, con el objetivo, el alcance, las tecnologías previstas y las próximas etapas.
+- `.gitignore`, preparado para Java, Maven, los IDE y la base de datos H2.
+- `docs/modelo_dominio_veterinaria.puml`.
+- `docs/reglas-negocio.md`.
+- `docs/casos-de-uso.md`.
+- `docs/bitacora-desarrollo-integrador.md`.
+- `docs/imagenes/diagrama_clases_veterinaria.png`.
+- `docs/imagenes/diagrama_flujo_veterinaria.png`.
+
+También se actualizó el modelo PlantUML para explicitar que `ConsultaMedica` crea un `RegistroMedico` y que `ServicioVacunacion` valida y crea una `AplicacionVacuna`.
 
 ---
 
