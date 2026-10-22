@@ -1,8 +1,6 @@
 # Sistema de Gestión Veterinaria — Casos de uso
 
-## 1. Qué es un caso de uso
-
-Un caso de uso describe una acción completa que un usuario realiza con el sistema. No es una clase ni una pantalla. Una misma pantalla puede permitir varios casos de uso.
+## 1. Alcance
 
 El alcance elegido contiene tres pantallas principales:
 
@@ -129,28 +127,31 @@ En la primera versión ambos pueden utilizar la misma aplicación sin autenticac
 
 1. El usuario selecciona “Nuevo turno”.
 2. Selecciona mascota y veterinario.
-3. Ingresa fecha y hora futuras.
-4. Selecciona uno o más servicios.
+3. Ingresa una fecha y hora futuras o selecciona atención inmediata para un cliente sin reserva previa.
+4. Selecciona uno o más servicios sin repetir la identidad de ninguno.
 5. El sistema crea temporalmente los detalles y calcula la duración total.
 6. `GestorTurnos` calcula el intervalo del turno.
 7. Comprueba la disponibilidad de la mascota.
 8. Comprueba la disponibilidad del veterinario.
 9. Crea el turno en estado `PENDIENTE`.
 10. Cada detalle conserva el precio y la duración vigentes.
-11. El sistema guarda el turno y muestra su importe total.
+11. Si el cliente ya aceptó el horario, el usuario elige “Guardar y confirmar”: se ejecuta `confirmar()` y se guardan la creación y la confirmación en una misma transacción. En caso contrario elige “Guardar pendiente”.
+12. El sistema muestra el estado y el importe total. En ambos casos el turno guardado reserva el intervalo.
 
 ### Flujos alternativos
 
 - **A1. Sin servicios:** se rechaza el turno.
 - **A2. Mascota o veterinario inactivos:** se informa que no pueden seleccionarse.
-- **A3. Fecha pasada:** se solicita una fecha futura.
+- **A3. Fecha pasada:** se solicita una fecha futura o la opción de atención inmediata; esta última utiliza el momento actual y vuelve a comprobar la disponibilidad al registrar.
 - **A4. Mascota ocupada:** se informa el solapamiento.
 - **A5. Veterinario ocupado:** se informa el solapamiento.
 - **A6. Guardería sin cupo:** no se permite agregar o confirmar ese servicio.
+- **A7. Servicio repetido:** se rechaza el segundo detalle con la misma identidad de servicio.
+- **A8. Error al guardar y confirmar:** se revierte la operación completa; no queda una reserva incompleta.
 
-**Postcondición de éxito:** existe un turno pendiente con al menos un detalle y valores históricos congelados.
+**Postcondición de éxito:** existe un turno pendiente o confirmado, según la opción elegida, con al menos un detalle, servicios sin duplicados y valores históricos congelados.
 
-**Reglas relacionadas:** RN-TUR-01 a RN-TUR-14 y RN-SER-01 a RN-SER-06.
+**Reglas relacionadas:** RN-TUR-01 a RN-TUR-17, RN-EST-08 y RN-SER-01 a RN-SER-06.
 
 ---
 
@@ -228,10 +229,10 @@ En la primera versión ambos pueden utilizar la misma aplicación sin autenticac
 4. `ConsultaMedica` valida y crea el `RegistroMedico`.
 5. Por cada servicio de vacunación, el sistema identifica la vacuna correspondiente.
 6. `ServicioVacunacion` comprueba que la mascota no tenga esa vacuna vigente.
-7. Crea la `AplicacionVacuna` y calcula la próxima dosis.
+7. Crea la `AplicacionVacuna` con el veterinario asignado al turno y calcula la próxima dosis.
 8. El turno ejecuta `atender()`.
 9. El estado cambia a `ATENDIDO`.
-10. Se guardan conjuntamente el turno y los registros generados.
+10. Se guardan conjuntamente el turno y los registros generados. Las indicaciones particulares, incluidas las de peluquería, pueden registrarse como observaciones opcionales de cada detalle.
 
 ### Flujos alternativos
 
@@ -301,30 +302,29 @@ En la primera versión ambos pueden utilizar la misma aplicación sin autenticac
 
 **Actor principal:** veterinario.
 
-**Objetivo:** registrar una dosis que no se origina en un turno, posibilidad permitida expresamente por el enunciado.
+**Objetivo:** incorporar al historial una aplicación anterior que no se origina en un turno de la clínica.
 
 **Pantalla:** historial médico y vacunaciones.
 
-**Precondiciones:** la mascota y la vacuna existen y están activas.
+**Precondiciones:** la mascota y la vacuna existen y están activas; se identifica al veterinario que realizó la aplicación. El profesional externo debe estar registrado con su matrícula para poder seleccionarlo.
 
 ### Flujo principal
 
 1. El usuario selecciona la mascota.
-2. Selecciona la vacuna y la fecha de aplicación.
-3. El sistema busca la última aplicación de esa vacuna para la mascota.
-4. Comprueba que no continúe vigente.
+2. Selecciona la vacuna, el veterinario responsable y la fecha real de aplicación.
+3. El sistema consulta los antecedentes de esa vacuna para la mascota.
+4. Comprueba la periodicidad con respecto a la fecha de aplicación registrada, no respecto a la fecha de carga del antecedente.
 5. Calcula la próxima dosis.
 6. Crea `AplicacionVacuna` sin asociarla a un turno.
-7. Guarda la aplicación y actualiza el historial.
+7. Guarda la aplicación y actualiza el historial. No genera un nuevo importe por cobrar; las vacunaciones realizadas por la clínica se registran mediante un turno, incluso sin reserva previa.
 
 ### Flujos alternativos
 
 - **A1. Vacuna vigente:** no se registra la nueva aplicación.
 - **A2. Mascota o vacuna inactivas:** se rechaza la operación.
+- **A3. Veterinario ausente:** se solicita identificar al profesional responsable antes de guardar.
 
-**Postcondición de éxito:** existe una aplicación histórica asociada a la mascota y a la vacuna, con turno opcional ausente.
-
-**Nota pendiente:** se debe confirmar si este caso exige registrar veterinario y si genera facturación.
+**Postcondición de éxito:** existe una aplicación histórica asociada a la mascota, a la vacuna y al veterinario, sin turno asociado.
 
 ---
 
@@ -336,5 +336,4 @@ En la primera versión ambos pueden utilizar la misma aplicación sin autenticac
 | Gestión de turnos | CU-04, CU-05, CU-06 y comienzo de CU-07 |
 | Historial médico y vacunaciones | final de CU-07, CU-08, CU-09 y CU-10 |
 
-Que existan diez casos de uso no significa que se necesiten diez pantallas. Un caso de uso representa un objetivo del usuario; una pantalla puede permitir varios objetivos relacionados.
 

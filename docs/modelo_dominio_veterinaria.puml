@@ -1,4 +1,5 @@
 @startuml
+!pragma layout smetana
 title Sistema de Gestión Veterinaria - Modelo de dominio
 
 skinparam classAttributeIconSize 0
@@ -80,7 +81,9 @@ package "com.veterinaria.modelo" {
     - servicio : Servicio
     - precioCongelado : BigDecimal
     - duracionMinutos : int
+    - observaciones : String
     + DetalleTurno(servicio : Servicio)
+    + registrarObservaciones(observaciones : String) : void
     + obtenerPrecio() : BigDecimal
     + obtenerDuracion() : int
   }
@@ -107,7 +110,7 @@ package "com.veterinaria.modelo" {
     - vacuna : Vacuna
     + requiereRegistroMedico() : boolean
     + validarAplicacion(mascota : Mascota, fecha : LocalDate) : void
-    + crearAplicacion(mascota : Mascota, fecha : LocalDate) : AplicacionVacuna
+    + crearAplicacion(mascota : Mascota, veterinario : Veterinario, fecha : LocalDate) : AplicacionVacuna
   }
 
   class Guarderia {
@@ -119,7 +122,6 @@ package "com.veterinaria.modelo" {
 
   class Peluqueria {
     + requiereRegistroMedico() : boolean
-    + validarTipoCorte(tipoCorte : String) : void
   }
 
   class RegistroMedico {
@@ -149,6 +151,7 @@ package "com.veterinaria.modelo" {
     - fechaProximaDosis : LocalDate
     - mascota : Mascota
     - vacuna : Vacuna
+    - veterinario : Veterinario
     + estaVigente(fechaActual : LocalDate) : boolean
     + estaProximaAVencer(fechaActual : LocalDate, dias : int) : boolean
   }
@@ -199,6 +202,7 @@ package "com.veterinaria.modelo" {
   Turno "1" *-- "0..1" RegistroMedico : puede generar >
   Mascota "1" -- "0..*" AplicacionVacuna : recibe >
   Vacuna "1" -- "0..*" AplicacionVacuna : corresponde a >
+  Veterinario "1" -- "0..*" AplicacionVacuna : realiza >
   Turno "0..1" -- "0..*" AplicacionVacuna : registra >
   ServicioVacunacion "0..*" --> "1" Vacuna : aplica
   ServicioVacunacion ..> AplicacionVacuna : valida y crea
@@ -216,6 +220,8 @@ package "com.veterinaria.modelo" {
 note right of Turno
   Reglas principales:
   - Debe contener al menos un servicio.
+  - No repite la identidad de un servicio.
+  - PENDIENTE y CONFIRMADO reservan horario.
   - PENDIENTE -> CONFIRMADO -> ATENDIDO.
   - PENDIENTE o CONFIRMADO -> CANCELADO.
   - Solo se cancela con más de 24 horas.
@@ -224,6 +230,19 @@ end note
 note right of DetalleTurno
   Conserva el precio y la duración
   vigentes al crear el turno.
+  Observaciones opcionales de cada atención.
+end note
+
+note right of Guarderia
+  Pendiente de consulta al docente:
+  cupo total diario o simultáneo;
+  bloqueo de agenda durante la estadía.
+  El cupo diario del modelo es provisional.
+end note
+
+note right of Veterinario
+  Las especialidades son informativas;
+  no restringen los servicios asignables.
 end note
 
 @enduml

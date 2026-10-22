@@ -243,7 +243,7 @@ Cada subclase incorpora reglas particulares:
 - `ConsultaMedica`: genera diagnóstico y tratamiento.
 - `ServicioVacunacion`: valida la periodicidad de una vacuna.
 - `Guarderia`: controla cupo.
-- `Peluqueria`: valida el tipo de corte.
+- `Peluqueria`: no requiere registro médico obligatorio. Se retiró la validación del tipo de corte; las indicaciones se conservan como observaciones opcionales del detalle de atención.
 
 También se incorporó la interfaz `Facturable`, implementada por `Servicio` y `Turno`, para representar la capacidad común de calcular un importe.
 
@@ -283,7 +283,9 @@ ServicioVacunacion ─────→ Vacuna
 ServicioVacunacion - - -→ AplicacionVacuna : valida y crea
 ```
 
-`AplicacionVacuna` se asocia permanentemente con `Mascota` y `Vacuna`, y puede estar vinculada opcionalmente a un `Turno`.
+`AplicacionVacuna` se asocia permanentemente con `Mascota`, `Vacuna` y el `Veterinario` responsable, y puede estar vinculada opcionalmente a un `Turno`.
+
+El modelo PlantUML explicita las dependencias de creación de `ConsultaMedica` hacia `RegistroMedico` y de `ServicioVacunacion` hacia `AplicacionVacuna`.
 
 **Justificación:** el servicio no contiene las aplicaciones históricas; las valida y crea cuando se realiza la vacunación.
 
@@ -382,19 +384,27 @@ El modelo de trabajo contiene:
 
 ---
 
-## 6. Decisiones todavía pendientes
+## 6. Revisión de decisiones — 22/10/2026
 
-Antes de cerrar definitivamente el diseño deben resolverse:
+### Decisiones acordadas
 
-1. Si un turno `PENDIENTE` ocupa el horario de la mascota y del veterinario. La propuesta es que sí lo ocupe.
-2. Si la guardería controla cupo diario completo o por franja horaria.
-3. Si la guardería bloquea la agenda de un veterinario durante toda la estadía.
-4. Si una vacunación registrada sin turno debe identificar al veterinario y generar facturación.
-5. Si un turno puede contener más de una consulta o servicios repetidos.
-6. Si la especialidad del veterinario limita los servicios que puede realizar.
-7. Si el tipo de corte de peluquería requiere un `enum` propio.
+| Tema | Decisión | Motivo |
+|---|---|---|
+| Reserva y confirmación | Todo turno nace `PENDIENTE`. Se permite guardar pendiente o crear y confirmar en una misma transacción, tras la aceptación del cliente. Ambos estados guardados reservan horario. | Conservar el flujo exigido y permitir el registro habitual por el personal. |
+| Clientes sin reserva previa | Se registra un turno para el momento de atención, comprobando disponibilidad y confirmándolo. | Conservar servicios, duración e importe aun sin una reserva anticipada. |
+| Vacunaciones | Toda aplicación identifica al veterinario responsable. La clínica registra sus prestaciones mediante turnos; el registro directo incorpora aplicaciones anteriores sin generar un nuevo importe. | Identificar al profesional y diferenciar antecedentes de prestaciones actuales. |
+| Servicios repetidos | Se impide repetir la identidad de un servicio dentro del turno; se permiten servicios diferentes. | Evitar duplicaciones accidentales de precio y duración. |
+| Especialidades | Son informativas y no restringen la asignación de servicios. | No incorporar una restricción que el enunciado no exige. |
+| Peluquería | Se retira `validarTipoCorte()` y no se incorpora `TipoCorte`. Las indicaciones se registran como observaciones opcionales de `DetalleTurno`. | Conservar las indicaciones de cada atención sin crear un catálogo no requerido. |
 
-Estas decisiones se documentarán cuando sean confirmadas o cuando se adopte una solución de diseño justificada.
+### Consultas pendientes para el docente
+
+1. ¿El cupo diario de guardería limita el total de mascotas recibidas en el día o la cantidad alojada simultáneamente? Con capacidad para diez, ¿pueden recibirse diez por la mañana y otras diez por la tarde si las estadías no se superponen?
+2. ¿La guardería bloquea la agenda del veterinario durante toda la estadía o deben distinguirse el horario de alojamiento y el de atención profesional?
+
+El atributo de cupo diario permanece provisional. Hasta obtener respuesta, no se incorpora una excepción a la regla general de no solapamiento del veterinario.
+
+**Archivos afectados:** modelo PlantUML, reglas de negocio, casos de uso y esta bitácora. Las decisiones corresponden al diseño; todavía no se implementaron en Java.
 
 ---
 
@@ -430,11 +440,6 @@ Estas decisiones se documentarán cuando sean confirmadas o cuando se adopte una
 8. Implementar repositorios y servicios de aplicación.
 9. Construir las tres pantallas JavaFX.
 10. Integrar, probar y preparar la entrega final.
-
----
-
-RESOLVER DONDE COLOCAR ESTA ACTUALIZACIÓN!!!!
-Se actualizó el modelo PlantUML para explicitar que `ConsultaMedica` crea un `RegistroMedico` y que `ServicioVacunacion` valida y crea una `AplicacionVacuna`.
 
 ---
 
