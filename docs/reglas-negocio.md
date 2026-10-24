@@ -133,9 +133,9 @@ Este documento convierte el enunciado y el modelo de dominio en reglas verificab
 
 ## 10. Aclaraciones del docente y decisiones adoptadas — 22/10/2026
 
-Según la respuesta del docente transmitida por la alumna, el cupo se interpreta por día, las especialidades son informativas y el veterinario no participa en guardería ni peluquería.
+Se le consultó al profesor sobre el cupo diario de mascotas, si era por capacidad física o franja horaria. Según su respuesta se decidió que el cupo se interpreta por día respetando la capacidad física posible de albergar mascotas. Con respecto a si los servicios debían asignarse únicamente dependiendo de la especialidad del veterinario se aclaró que las especialidades son informativas y el veterinario no participa en guardería ni peluquería.
 
-Para reflejar esas aclaraciones se conserva `Turno` con sus servicios, sin crear `ReservaGuarderia`. Se asigna un inicio propio a cada detalle, se deriva el intervalo general y se valida la disponibilidad según el recurso requerido. Estas son decisiones de diseño adoptadas por la alumna, no indicaciones textuales del docente.
+Para reflejar esas aclaraciones se conserva `Turno` con sus servicios, sin crear `ReservaGuarderia`. Se asigna un inicio propio a cada detalle, se deriva el intervalo general y se valida la disponibilidad según el recurso requerido. Estas son decisiones de diseño adoptadas por la alumna, no indicaciones textuales del profesor.
 
 Las consultas de guardería antes pendientes quedan resueltas con este criterio. La implementación Java todavía no comenzó.
 
