@@ -410,7 +410,7 @@ Estas consultas se encontraban pendientes en la primera revisión. Sus respuesta
 
 ### 6.1. Aclaraciones del docente y ajuste de horarios — 22/10/2026
 
-La alumna comunicó las siguientes respuestas del docente:
+En base a las respuestas obtenidas por el profesor se definió que: 
 
 - El cupo de guardería corresponde a la cantidad de mascotas permitidas por día. Se adopta el control diario, sin reutilización del cupo por franjas horarias.
 - Las especialidades son información para el administrador; la selección queda a criterio del personal, sin restricciones automáticas por especialidad.
@@ -431,7 +431,7 @@ A partir de esas aclaraciones se acordaron las siguientes decisiones de diseño:
 
 Ejemplo de programación utilizado para comprobar el diseño: guardería de 8:00 a 18:00, consulta de 10:00 a 10:30 y peluquería de 15:00 a 16:00. La mascota ocupa un lugar de guardería para esa fecha y el veterinario solo queda reservado de 10:00 a 10:30.
 
-Las decisiones sobre horarios por detalle y multiplicidades son propuestas de diseño acordadas con la alumna, derivadas de las respuestas del docente. No se atribuyen al docente indicaciones técnicas sobre clases o métodos.
+Las decisiones sobre horarios por detalle y multiplicidades son propuestas de diseño acordadas por la alumna, derivadas de las respuestas del docente. No se atribuyen al docente indicaciones técnicas sobre clases o métodos.
 
 **Archivos afectados:** `modelo_dominio_veterinaria.puml`, `reglas-negocio.md`, `casos-de-uso.md`, imagen del diagrama de clases y esta bitácora.
 
