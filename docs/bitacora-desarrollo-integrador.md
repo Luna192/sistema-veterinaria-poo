@@ -6,7 +6,7 @@
 **Docente:** Claudio Omar Biale  
 **Alumna:** Acosta Araceli Luna  
 **Periodo documentado:** agosto–octubre de 2026  
-**Última actualización:** 22 de octubre de 2026
+**Última actualización:** 29 de octubre de 2026
 
 ---
 
@@ -20,7 +20,7 @@ La bitácora diferencia tres estados:
 - **Documentado:** la decisión ya fue incorporada al modelo, reglas o casos de uso.
 - **Implementado:** la decisión fue traducida a código y verificada mediante pruebas.
 
-Actualmente el proyecto se encuentra principalmente en las etapas de análisis y diseño. La implementación en Java todavía no comenzó.
+La implementación en Java comenzó el 29/10/2026 con el primer incremento de clientes y mascotas. Las etapas previas se conservan como registro histórico del análisis y diseño.
 
 ---
 
@@ -451,9 +451,9 @@ Las decisiones sobre horarios por detalle y multiplicidades son propuestas de di
 | Casos de uso | Primera versión documentada |
 | Alcance de pantallas | Definido |
 | Repositorio GitHub | Creado y documentado: `Luna192/sistema-veterinaria-poo` |
-| Proyecto Maven | Pendiente |
-| Clases Java | Pendientes |
-| Pruebas | Pendientes |
+| Proyecto Maven | Primer incremento con Java 17 y Maven Wrapper |
+| Clases Java | Cliente, Mascota, enumeraciones, excepciones y demostración |
+| Pruebas | Reglas de clientes y mascotas; resultados del primer incremento registrados en sección 10 |
 | Persistencia JPA/H2 | Pendiente |
 | Interfaz JavaFX | Pendiente |
 
@@ -486,4 +486,22 @@ La bitácora se actualizará después de cada avance relevante. Cada nueva entra
 - Estado de verificación.
 
 De esta manera, el repositorio no mostrará solamente el resultado final, sino también la evolución razonada del integrador.
+
+## 10. Inicio de implementación — 29/10/2026
+
+**Objetivo:** establecer un proyecto compilable y comenzar el dominio con clientes y mascotas. Fecha objetivo de sistema completo: 10/12/2026.
+
+Se incorporaron Maven y Java 17, una demostración ejecutable en memoria y las primeras clases del dominio: `Cliente`, `Mascota`, `Especie`, `Especialidad`, `EstadoTurno`, `DatosInvalidosException` y `EntidadInactivaException`. `Validaciones` centraliza comprobaciones elementales compartidas dentro del paquete.
+
+El alta se realiza mediante `Cliente.registrarMascota(...)`: se valida y crea la mascota con su cliente antes de agregarla a la colección. Si la validación falla, no queda una mascota parcialmente registrada. La colección se expone como una copia no modificable que conserva las referencias a las mascotas. El peso solo cambia mediante una operación que exige un valor positivo. La edad se calcula desde la fecha de nacimiento. La baja es lógica y conserva la asociación.
+
+La fecha de nacimiento, especie, ficha y cliente no tienen modificadores públicos en este incremento. El constructor de `Mascota` tiene visibilidad de paquete y el alta pública pertenece a `Cliente`. Los datos opcionales se consultan mediante `Optional`.
+
+Se agregaron pruebas para altas inválidas, asociaciones, nombres iguales de objetos distintos, protección de la colección, actualización de contacto sin cambios parciales, pesos, fechas, edad y bajas lógicas. `clean verify` compiló el proyecto y ejecutó **32 pruebas, sin fallos ni errores**. Se generó el JAR de demostración; se verificó su ejecución en Java 17.
+
+**Límites del incremento:** funcionamiento en memoria, sin JavaFX ni persistencia. La asignación de `id` y las restricciones globales de DNI/ficha se implementarán con repositorios y JPA. La validación local de ficha solo detecta duplicados entre las mascotas del mismo cliente.
+
+**Decisión reabierta:** la alumna cuestionó el cupo diario de guardería frente a la capacidad simultánea que se libera al retirar una mascota. La interpretación queda pendiente de confirmación; no se implementó la guardería. Las decisiones del 22/10 se conservan como antecedente.
+
+**Archivos afectados:** `pom.xml`, Maven Wrapper, `src/main/java`, `src/test/java`, `README.md`, esta bitácora y `plan-implementacion.md`.
 
