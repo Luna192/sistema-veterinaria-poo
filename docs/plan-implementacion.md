@@ -1,6 +1,6 @@
 # Plan de implementación — Objetivo: 10 de diciembre de 2026
 
-**Alumna:** Acosta Araceli Luna  
+**Alumnos:** Acosta Araceli Luna  y Braga Juan Ignacio
 **Docente:** Claudio Omar Biale  
 **Inicio de implementación:** 29 de octubre de 2026
 
