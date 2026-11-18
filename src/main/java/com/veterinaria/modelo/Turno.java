@@ -1,0 +1,143 @@
+package com.veterinaria.modelo;
+
+import com.veterinaria.modelo.excepciones.DatosInvalidosException;
+import com.veterinaria.modelo.excepciones.EntidadInactivaException;
+import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+public class Turno {
+    private EstadoTurno estado = EstadoTurno.PENDIENTE;
+    private final LocalDateTime fechaHoraInicio;
+    private final Mascota mascota;
+    private final Veterinario veterinario;
+    private final List<DetalleTurno> detalles;
+
+    public Turno(Mascota mascota, Veterinario veterinario, List<DetalleTurno> detalles,
+                 LocalDateTime fechaHoraInicio) {
+        if (mascota == null) {
+            throw new DatosInvalidosException("La mascota es obligatoria.");
+        }
+        if (!mascota.estaActiva()) {
+            throw new EntidadInactivaException("La mascota debe estar activa.");
+        }
+        if (fechaHoraInicio == null || !fechaHoraInicio.isAfter(LocalDateTime.now())) {
+            throw new DatosInvalidosException("El turno debe programarse para una fecha y hora futuras.");
+        }
+        if (detalles == null || detalles.isEmpty() || detalles.stream().anyMatch(detalle -> detalle == null)) {
+            throw new DatosInvalidosException("El turno debe contener al menos un servicio.");
+        }
+        validarServiciosNoRepetidos(detalles);
+        validarVeterinario(veterinario, detalles);
+
+        this.mascota = mascota;
+        this.veterinario = veterinario;
+        this.detalles = List.copyOf(detalles);
+        this.fechaHoraInicio = fechaHoraInicio;
+    }
+
+    public void confirmar() {
+        exigirEstado(EstadoTurno.PENDIENTE, "Solo un turno pendiente puede confirmarse.");
+        estado = EstadoTurno.CONFIRMADO;
+    }
+
+    public void cancelar(LocalDateTime fechaActual) {
+        if (estado != EstadoTurno.PENDIENTE && estado != EstadoTurno.CONFIRMADO) {
+            throw new DatosInvalidosException("El turno no puede cancelarse en su estado actual.");
+        }
+        if (fechaActual == null || Duration.between(fechaActual, fechaHoraInicio).compareTo(Duration.ofHours(24)) <= 0) {
+            throw new DatosInvalidosException("El turno solo puede cancelarse con más de 24 horas de anticipación.");
+        }
+        estado = EstadoTurno.CANCELADO;
+    }
+
+    public void marcarAtendido() {
+        exigirEstado(EstadoTurno.CONFIRMADO, "Solo un turno confirmado puede marcarse como atendido.");
+        estado = EstadoTurno.ATENDIDO;
+    }
+
+    public BigDecimal calcularImporte() {
+        return detalles.stream()
+                .map(DetalleTurno::getPrecioCongelado)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public int calcularDuracionTotal() {
+        return detalles.stream().mapToInt(DetalleTurno::getDuracionMinutos).sum();
+    }
+
+    public LocalDateTime calcularFechaHoraFin() {
+        return fechaHoraInicio.plusMinutes(calcularDuracionTotal());
+    }
+
+    public boolean seSolapaCon(Turno otroTurno) {
+        if (otroTurno == null || !ocupaHorario() || !otroTurno.ocupaHorario()) {
+            return false;
+        }
+        return fechaHoraInicio.isBefore(otroTurno.calcularFechaHoraFin())
+                && otroTurno.fechaHoraInicio.isBefore(calcularFechaHoraFin());
+    }
+
+    public boolean ocupaHorario() {
+        return estado != EstadoTurno.CANCELADO;
+    }
+
+    public void registrarResultado(DetalleTurno detalle, String diagnostico, String tratamiento) {
+        exigirEstado(EstadoTurno.CONFIRMADO, "Solo un turno confirmado puede registrar resultados.");
+        if (!detalles.contains(detalle)) {
+            throw new DatosInvalidosException("El detalle no pertenece al turno.");
+        }
+        detalle.registrarResultado(diagnostico, tratamiento);
+    }
+
+    public EstadoTurno getEstado() {
+        return estado;
+    }
+
+    public LocalDateTime getFechaHoraInicio() {
+        return fechaHoraInicio;
+    }
+
+    public Mascota getMascota() {
+        return mascota;
+    }
+
+    public Optional<Veterinario> getVeterinario() {
+        return Optional.ofNullable(veterinario);
+    }
+
+    public List<DetalleTurno> getDetalles() {
+        return detalles;
+    }
+
+    private void validarVeterinario(Veterinario veterinario, List<DetalleTurno> detalles) {
+        boolean requiereVeterinario = detalles.stream()
+                .map(DetalleTurno::getServicio)
+                .anyMatch(Servicio::requiereVeterinario);
+        if (requiereVeterinario && veterinario == null) {
+            throw new DatosInvalidosException("El turno requiere un veterinario.");
+        }
+        if (veterinario != null && !veterinario.estaActivo()) {
+            throw new EntidadInactivaException("El veterinario debe estar activo.");
+        }
+    }
+
+    private void validarServiciosNoRepetidos(List<DetalleTurno> detalles) {
+        Set<Servicio> servicios = new HashSet<>();
+        for (DetalleTurno detalle : detalles) {
+            if (!servicios.add(detalle.getServicio())) {
+                throw new DatosInvalidosException("No se puede repetir un servicio en el mismo turno.");
+            }
+        }
+    }
+
+    private void exigirEstado(EstadoTurno estadoEsperado, String mensaje) {
+        if (estado != estadoEsperado) {
+            throw new DatosInvalidosException(mensaje);
+        }
+    }
+}

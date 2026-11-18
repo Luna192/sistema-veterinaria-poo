@@ -20,3 +20,6 @@ target/
 # Archivos del sistema operativo
 .DS_Store
 Thumbs.db
+
+# Codex
+AGENTS.md
