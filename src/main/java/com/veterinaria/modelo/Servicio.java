@@ -4,7 +4,7 @@ import com.veterinaria.modelo.excepciones.DatosInvalidosException;
 import com.veterinaria.modelo.excepciones.EntidadInactivaException;
 import java.math.BigDecimal;
 
-public abstract class Servicio {
+public abstract class Servicio implements Facturable {
     private final String nombre;
     private BigDecimal precioBase;
     private final int duracionMinutos;
@@ -24,6 +24,7 @@ public abstract class Servicio {
         precioBase = validarPrecio(nuevoPrecio);
     }
 
+    @Override
     public BigDecimal calcularImporte() {
         return precioBase;
     }
