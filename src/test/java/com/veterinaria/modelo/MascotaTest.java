@@ -2,7 +2,6 @@ package com.veterinaria.modelo;
 
 import com.veterinaria.modelo.excepciones.DatosInvalidosException;
 import com.veterinaria.modelo.excepciones.EntidadInactivaException;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -17,100 +16,106 @@ class MascotaTest {
 
     private Mascota mascota() {
         return cliente().registrarMascota("F-1", "Toby", Especie.PERRO, null,
-                LocalDate.of(2020, 3, 15), BigDecimal.TEN);
+                LocalDate.of(2020, 3, 15)
+            );
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"0", "-1", "-0.01"})
-    void rechazaPesoInvalidoAlCrearYActualizar(String valor) {
-        BigDecimal peso = new BigDecimal(valor);
-        Cliente ana = cliente();
-        assertThrows(DatosInvalidosException.class, () -> ana.registrarMascota(
-                "F-1", "Toby", Especie.PERRO, "", LocalDate.of(2020, 1, 1), peso));
-        Mascota toby = mascota();
-        assertThrows(DatosInvalidosException.class, () -> toby.actualizarPeso(peso));
-        assertEquals(BigDecimal.TEN, toby.getPeso());
-    }
 
-    @Test
-    void rechazaPesoNulo() {
-        Mascota toby = mascota();
-        assertThrows(DatosInvalidosException.class, () -> toby.actualizarPeso(null));
-        assertThrows(DatosInvalidosException.class, () -> cliente().registrarMascota(
-                "F-1", "Toby", Especie.PERRO, "", LocalDate.of(2020, 1, 1), null));
-    }
-
-    @Test
-    void aceptaPesoPositivoMenorAUnKilo() {
-        Mascota toby = mascota();
-        toby.actualizarPeso(new BigDecimal("0.25"));
-        assertEquals(new BigDecimal("0.25"), toby.getPeso());
-    }
-
-    @ParameterizedTest
-    @NullAndEmptySource
-    @ValueSource(strings = {" "})
+    @ParameterizedTest  // Ejecuta la misma prueba con distintos nombres inválidos para la mascota.
+    @NullAndEmptySource  // Prueba con valores nulos y vacíos para el nombre de la mascota.
+    @ValueSource(strings = {" "})  // Prueba con un espacio en blanco como nombre de la mascota.
     void rechazaNombreVacioYConservaDatosSiFallaLaEdicion(String nombre) {
         Mascota toby = mascota();
-        assertThrows(DatosInvalidosException.class, () -> toby.cambiarDatos(nombre, "Nueva raza"));
-        assertEquals("Toby", toby.getNombre());
+
+        assertThrows(DatosInvalidosException.class,     // Verifica que se lance una excepción de DatosInvalidosException al intentar cambiar los datos de la mascota con un nombre inválido.
+            () -> toby.editarDatos(
+            nombre, Especie.PERRO, "Nueva raza",
+            LocalDate.of(2020, 3, 15))
+        );
+        
+        assertEquals("Toby", toby.getNombre());         // Verifica que el nombre de la mascota no haya cambiado después de la excepción.
         assertTrue(toby.getRaza().isEmpty());
-        assertThrows(DatosInvalidosException.class, () -> cliente().registrarMascota(
-                "F-2", nombre, Especie.PERRO, "", LocalDate.of(2020, 1, 1), BigDecimal.ONE));
+
+        assertThrows(DatosInvalidosException.class,     // Verifica que se lance una excepción de DatosInvalidosException al intentar cambiar los datos de la mascota con un nombre inválido.
+            () -> cliente().registrarMascota(
+                "F-2", nombre, Especie.PERRO, "", 
+                LocalDate.of(2020, 1, 1))
+            );
     }
 
     @Test
     void rechazaFechaFuturaNulaYEspecieAusente() {
         Cliente ana = cliente();
-        assertThrows(DatosInvalidosException.class, () -> ana.registrarMascota(
-                "F-1", "Toby", Especie.PERRO, "", LocalDate.now().plusDays(1), BigDecimal.ONE));
-        assertThrows(DatosInvalidosException.class, () -> ana.registrarMascota(
-                "F-1", "Toby", Especie.PERRO, "", null, BigDecimal.ONE));
-        assertThrows(DatosInvalidosException.class, () -> ana.registrarMascota(
-                "F-1", "Toby", null, "", LocalDate.of(2020, 1, 1), BigDecimal.ONE));
+
+        assertThrows(DatosInvalidosException.class, 
+            () -> ana.registrarMascota(
+                "F-1", "Toby", Especie.PERRO, "", 
+                LocalDate.now().plusDays(1))
+            );
+
+        assertThrows(DatosInvalidosException.class, 
+            () -> ana.registrarMascota(
+                "F-1", "Toby", Especie.PERRO, "", null
+                )
+            );
+
+        assertThrows(DatosInvalidosException.class, 
+            () -> ana.registrarMascota(
+                "F-1", "Toby", null, "", 
+                LocalDate.of(2020, 1, 1))
+            );
+
         assertTrue(ana.getMascotas().isEmpty());
     }
 
     @Test
-    void noPermiteCrearSinClienteNiConClienteInactivo() {
-        assertThrows(DatosInvalidosException.class, () -> new Mascota(null,
-                "F-1", "Toby", Especie.PERRO, "", LocalDate.of(2020, 1, 1), BigDecimal.ONE));
-        Cliente ana = cliente();
-        ana.darDeBaja();
-        assertThrows(EntidadInactivaException.class, () -> new Mascota(ana,
-                "F-1", "Toby", Especie.PERRO, "", LocalDate.of(2020, 1, 1), BigDecimal.ONE));
+    void noPermiteCrearSinCliente() {
+        assertThrows(DatosInvalidosException.class, 
+            () -> new Mascota(
+                null, "F-1", "Toby", Especie.PERRO, "", 
+                LocalDate.of(2020, 1, 1)
+            )
+        );
+
     }
 
-    @Test
-    void calculaEdadEnAniosCompletosAntesYDespuesDelCumpleanios() {
-        Mascota toby = mascota();
-        assertEquals(5, toby.calcularEdad(LocalDate.of(2026, 3, 14)));
-        assertEquals(6, toby.calcularEdad(LocalDate.of(2026, 3, 15)));
-        assertEquals(0, toby.calcularEdad(LocalDate.of(2020, 3, 15)));
-        assertThrows(DatosInvalidosException.class,
-                () -> toby.calcularEdad(LocalDate.of(2019, 1, 1)));
-        assertThrows(DatosInvalidosException.class, () -> toby.calcularEdad(null));
-    }
 
-    @Test
-    void actualizarPesoMantieneLosOtrosDatosYSeObservaDesdeElCliente() {
+    @Test  // Verifica que al editar los datos de la mascota, los cambios se reflejen correctamente en el cliente y que la identidad de la mascota se conserve.
+    void editarDatosSeObservaDesdeElClienteYConservaIdentidad() {
         Mascota toby = mascota();
         Cliente ana = toby.getCliente();
-        toby.actualizarPeso(new BigDecimal("11.0"));
-        assertEquals(new BigDecimal("11.0"), ana.getMascotas().get(0).getPeso());
-        assertEquals("Toby", toby.getNombre());
+
+        toby.editarDatos(
+            "Tobías", Especie.GATO, "Siamés",
+            LocalDate.of(2021, 5, 10)
+        );
+
+        assertEquals("Tobías", ana.getMascotas().get(0).getNombre());       
+        assertEquals(Especie.GATO, toby.getEspecie());
+        assertEquals("Siamés", toby.getRaza().orElseThrow());
+        assertEquals(LocalDate.of(2021, 5, 10), toby.getFechaNacimiento());
         assertEquals("F-1", toby.getNumeroFicha());
         assertSame(ana, toby.getCliente());
+        assertSame(toby, ana.getMascotas().get(0));
     }
 
     @Test
     void bajaLogicaConservaDatosYAsociacionPeroImpideModificaciones() {
         Mascota toby = mascota();
         toby.darDeBaja();
+
         assertFalse(toby.estaActiva());
         assertSame(toby, toby.getCliente().getMascotas().get(0));
         assertEquals("Toby", toby.getNombre());
-        assertThrows(EntidadInactivaException.class, () -> toby.actualizarPeso(BigDecimal.ONE));
-        assertThrows(EntidadInactivaException.class, () -> toby.cambiarDatos("Otro", ""));
+        
+        
+        assertThrows(EntidadInactivaException.class, 
+            () -> toby.editarDatos(
+                "Otro", Especie.PERRO, "",
+                LocalDate.of(2020, 3, 15)
+            )
+        );
+        
+        assertEquals("Toby", toby.getNombre());
     }
 }

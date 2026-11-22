@@ -2,6 +2,7 @@ package com.veterinaria.modelo;
 import java.util.ArrayList;
 import java.util.List;
 import java.time.LocalDate;
+import java.util.Optional;
 import com.veterinaria.modelo.excepciones.DatosInvalidosException;
 
 public class Cliente {              // Clase que representa a un cliente de la veterinaria.
@@ -52,6 +53,20 @@ public class Cliente {              // Clase que representa a un cliente de la v
         this.telefono = nuevoTelefono; 
         this.email = nuevoEmail;  
     }  
+
+    public Optional<String> getTelefono() {  // Método para obtener el teléfono del cliente, devuelve un Optional que puede estar vacío si no hay teléfono registrado.
+        if (telefono.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(telefono);
+    }
+
+    public Optional<String> getEmail() {
+        if (email.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(email);
+    }
 
      public List<Mascota> getMascotas() {
             return List.copyOf(mascotas);         // Devuelve una copia de la lista de mascotas para evitar modificaciones externas.
