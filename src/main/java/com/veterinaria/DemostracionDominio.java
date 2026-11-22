@@ -3,8 +3,12 @@ package com.veterinaria;
 import com.veterinaria.modelo.Cliente;
 import com.veterinaria.modelo.Especie;
 import com.veterinaria.modelo.Mascota;
+import com.veterinaria.modelo.Vacuna;
+import com.veterinaria.modelo.Veterinario;
+import com.veterinaria.modelo.Especialidad;
 import com.veterinaria.modelo.excepciones.EntidadInactivaException;
 import com.veterinaria.modelo.excepciones.DatosInvalidosException;
+import java.util.Set;
 import java.time.LocalDate;
 
 /** Demostración en memoria. La interfaz final se desarrollará con JavaFX. */
@@ -44,5 +48,28 @@ public final class DemostracionDominio {
         System.out.println("Mascotas registradas: " + ana.getMascotas().size());
         System.out.println("Mascota: " + toby.getNombre() + " | Ficha: " + toby.getNumeroFicha());
         System.out.println("Asociación consistente: " + (toby.getCliente() == ana));
+
+
+        Vacuna antirrabica = new Vacuna("Antirrábica", "Rabia", 12);
+        System.out.println("Vacuna: " + antirrabica.getNombreComercial());
+        System.out.println(
+            "Periodicidad: " + antirrabica.getPeriodicidadMeses() + " meses"
+        );
+
+
+        Veterinario laura = new Veterinario(
+            "Laura",
+            "Sosa",
+            "MAT-123",
+            Set.of(Especialidad.CLINICA_GENERAL)
+        );
+
+        System.out.println(
+            "Veterinario: " + laura.getNombre() + " " + laura.getApellido()
+        );
+
+        System.out.println("Matricula: " + laura.getMatricula());
+        System.out.println("Especialidades: " + laura.getEspecialidades());
+
     }
 }
