@@ -130,7 +130,7 @@ public class Turno {
 
             if (anterior.getMascota() != mascota
                 || anterior.getVacuna() != vacuna) {
-                throw new DatosInvalidosException("La aplicación anterior corresponder a la misma mascota.");
+                throw new DatosInvalidosException("La aplicación anterior debe corresponder a la misma mascota y vacuna.");
             }
 
             anterior.validarNuevaAplicacion(fecha);

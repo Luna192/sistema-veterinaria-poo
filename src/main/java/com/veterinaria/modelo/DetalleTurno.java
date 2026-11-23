@@ -12,6 +12,7 @@ public class DetalleTurno {
     private String diagnostico = "";
     private String tratamiento = "";
     private AplicacionVacuna aplicacionVacuna;
+    private Turno turno;
 
     public DetalleTurno(Servicio servicio) {
         if (servicio == null) {
@@ -72,6 +73,25 @@ public class DetalleTurno {
         }
         
         this.aplicacionVacuna = aplicacionVacuna;
+    }
+
+    void validarDisponibleParaAsignacion() {
+    if (turno != null) {
+        throw new DatosInvalidosException(
+            "El detalle ya pertenece a un turno."
+            );
+        }
+    }
+
+    void asignarTurno(Turno turno) {
+        if (turno == null) {
+            throw new DatosInvalidosException(
+                "El turno es obligatorio."
+            );
+        }
+
+        validarDisponibleParaAsignacion();
+        this.turno = turno;
     }
 
 }
