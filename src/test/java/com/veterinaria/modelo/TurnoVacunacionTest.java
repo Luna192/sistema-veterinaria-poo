@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+import com.veterinaria.modelo.excepciones.DatosInvalidosException;
 
 class TurnoVacunacionTest {
 
@@ -25,5 +26,45 @@ class TurnoVacunacionTest {
         Vacunacion servicio = new Vacunacion("Aplicacion de vacuna", new BigDecimal("15000"), 15);
 
         DetalleTurno detalle = new DetalleTurno(servicio);
+
+        Turno turno = new Turno(
+            toby,
+            veterinario,
+            List.of(detalle),
+            LocalDateTime.now().plusMinutes(5)
+        );
+
+        turno.confirmar();
+
+        AplicacionVacuna aplicacion = turno.registrarVacunacion(
+            detalle,
+            vacuna,
+            LocalDate.now(),
+            Optional.empty()
+        );
+
+        assertSame(
+            aplicacion,
+            detalle.getAplicacionVacuna().orElseThrow()
+        );
+
+        assertSame(toby, aplicacion.getMascota());
+        assertSame(vacuna, aplicacion.getVacuna());
+        assertSame(veterinario, aplicacion.getVeterinario());
+
+        assertThrows(DatosInvalidosException.class,
+            () -> turno.registrarVacunacion(
+                detalle,
+                vacuna,
+                LocalDate.now(),
+                Optional.empty()
+            )
+        );
+
+        assertSame(
+            aplicacion,
+            detalle.getAplicacionVacuna().orElseThrow()
+        );
+
     }
 }
