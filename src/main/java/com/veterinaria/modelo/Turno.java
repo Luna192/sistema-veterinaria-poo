@@ -32,14 +32,23 @@ public class Turno implements Facturable {
         if (detalles == null || detalles.isEmpty() || detalles.stream().anyMatch(detalle -> detalle == null)) {
             throw new DatosInvalidosException("El turno debe contener al menos un servicio.");
         }
+
         validarServiciosNoRepetidos(detalles);
         validarEspeciesAdmitidas(mascota, detalles);
         validarVeterinario(veterinario, detalles);
+
+        for (DetalleTurno detalle : detalles){
+            detalle.validarDisponibleParaAsignacion();
+        }
 
         this.mascota = mascota;
         this.veterinario = veterinario;
         this.detalles = List.copyOf(detalles);
         this.fechaHoraInicio = fechaHoraInicio;
+
+        for (DetalleTurno detalle : this.detalles) {
+            detalle.asignarTurno(this);
+        }
     }
 
     public void confirmar() {
@@ -143,7 +152,11 @@ public class Turno implements Facturable {
                 || anterior.getVacuna() != vacuna) {
                 throw new DatosInvalidosException("La aplicación anterior debe corresponder a la misma mascota y vacuna.");
             }
+
+            anterior.validarNuevaAplicacion(fecha);
         }
+
+        
 
         AplicacionVacuna nuevaAplicacion = new AplicacionVacuna(mascota, vacuna, veterinario, fecha);
         detalle.vincularAplicacionVacuna(nuevaAplicacion);
