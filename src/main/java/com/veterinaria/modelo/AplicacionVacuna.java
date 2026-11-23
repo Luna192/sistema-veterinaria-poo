@@ -1,6 +1,7 @@
 package com.veterinaria.modelo;
 
 import com.veterinaria.modelo.excepciones.DatosInvalidosException;
+import com.veterinaria.modelo.excepciones.EntidadInactivaException;
 import java.time.LocalDate;
 
 public class AplicacionVacuna {
@@ -17,6 +18,11 @@ public class AplicacionVacuna {
             throw new DatosInvalidosException(
                 "La aplicacion debe tener una mascota."
             );   
+        }
+        if (!mascota.estaActiva()) {
+            throw new EntidadInactivaException(
+                "La mascota debe estar activa para recibir una aplicación."
+            );
         }
 
         if (vacuna == null) {
@@ -87,9 +93,17 @@ public class AplicacionVacuna {
     }
 
     public boolean estaProximaAVencer(LocalDate fechaActual) {
-        return estaVigente(fechaActual)
-            && !fechaProximaDosis.isAfter(fechaActual.plusDays(30));
+        return estaProximaAVencer(fechaActual, 30);
+    }
 
+    public boolean estaProximaAVencer(LocalDate fechaActual, int diasAlerta) {
+        if (diasAlerta <= 0) {
+            throw new DatosInvalidosException(
+                "Los días de alerta deben ser mayores que cero."
+            );
+        }
+        return estaVigente(fechaActual)
+            && !fechaProximaDosis.isAfter(fechaActual.plusDays(diasAlerta));
     }
 
     public void validarNuevaAplicacion(LocalDate fechaNuevaAplicacion) {

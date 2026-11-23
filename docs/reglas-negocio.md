@@ -108,16 +108,16 @@ El modelo vigente no contempla una clase independiente `RegistroMedico`. La info
 ## 7. Vacunaciones
 
 - **RN-VAC-01. Catálogo:** una `Vacuna` define la información correspondiente a la vacuna, incluyendo su nombre, la enfermedad que previene y su periodicidad en meses.
-- **RN-VAC-02. Servicio específico:** cada `ServicioVacunacion` se asocia con exactamente una vacuna.
-- **RN-VAC-03. Aplicación histórica:** `AplicacionVacuna` representa una dosis concreta recibida por una mascota; no representa el catálogo ni el servicio facturable.
+- **RN-VAC-02. Servicio genérico de vacunación:** `Vacunacion` representa el servicio genérico de aplicación de vacunas ofrecido por la veterinaria. La vacuna concreta administrada se identifica al crear una `AplicacionVacuna`, que registra la mascota, la vacuna, el veterinario responsable y las fechas correspondientes.
+- **RN-VAC-03. Aplicación concreta:** `AplicacionVacuna` representa una dosis concreta recibida por una mascota. Puede incorporar una aplicación anterior como antecedente histórico o registrar una nueva aplicación realizada por la clínica; no representa el catálogo ni sustituye al servicio facturable.
 - **RN-VAC-04. Datos de aplicación:** una aplicación debe identificar la mascota, la vacuna, el veterinario responsable y la fecha de aplicación. También debe permitir determinar la fecha de próxima dosis.
 - **RN-VAC-05. Cálculo:** la próxima dosis se calcula sumando la periodicidad de la vacuna a la fecha de aplicación.
 - **RN-VAC-06. Vigencia:** no debe permitirse una nueva aplicación de la misma vacuna si la dosis anterior todavía se encuentra vigente.
-- **RN-VAC-07. Asociación con turnos:** una aplicación puede estar asociada a un detalle de turno o registrarse directamente sobre la mascota, según las posibilidades del modelo.
+- **RN-VAC-07. Asociación con turnos:** una aplicación puede estar asociada a un detalle de turno o registrarse directamente sobre la mascota. Esta posibilidad corresponde tanto a aplicaciones anteriores incorporadas como a nuevas aplicaciones realizadas por la clínica.
 - **RN-VAC-08. Historial:** una mascota puede tener múltiples aplicaciones y una misma vacuna puede aplicarse a distintas mascotas.
 - **RN-VAC-09. Alertas:** una vacuna está próxima a vencer cuando su próxima dosis se encuentra dentro del intervalo configurable establecido por el sistema.
 - **RN-VAC-10. Profesional responsable:** si la aplicación proviene de un turno, su veterinario debe coincidir con el asignado a ese turno. Para un antecedente sin turno, se identifica al profesional que realizó la aplicación.
-- **RN-VAC-11. Origen e importe:** las vacunaciones realizadas por la clínica se registran mediante un turno, incluso cuando el cliente llega sin reserva previa, conservando el precio del servicio. El registro directo de aplicaciones anteriores incorpora antecedentes al historial y no genera un nuevo importe por cobrar.
+- **RN-VAC-11. Origen e importe:** una aplicación de vacuna puede registrarse asociada a un detalle de turno o directamente sobre la mascota. Cuando forma parte de un turno, debe vincularse al detalle correspondiente y su prestación quedará incluida en el precio del turno mediante el precio congelado de ese detalle. Una aplicación registrada directamente sobre la mascota no genera por sí misma un importe de turno; esta regla no establece un mecanismo independiente de facturación ni limita el registro directo exclusivamente a vacunaciones históricas o anteriores.
 
 La periodicidad, el cálculo de vigencia y las alertas deben respetar los datos y las relaciones definidos en el modelo vigente. La existencia de una baja lógica del catálogo de vacunas no se considera una regla confirmada en esta versión.
 

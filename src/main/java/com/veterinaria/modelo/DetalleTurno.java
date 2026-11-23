@@ -17,9 +17,6 @@ public class DetalleTurno {
         if (servicio == null) {
             throw new DatosInvalidosException("El servicio es obligatorio.");
         }
-        if (!servicio.estaActivo()) {
-            throw new DatosInvalidosException("No se puede agregar un servicio inactivo.");
-        }
         this.servicio = servicio;
         this.precioCongelado = servicio.calcularImporte();
         this.duracionMinutos = servicio.getDuracionMinutos();
