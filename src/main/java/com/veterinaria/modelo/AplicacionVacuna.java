@@ -59,6 +59,23 @@ public class AplicacionVacuna {
         return fechaProximaDosis;
     }
 
+    public LocalDate getFechaAplicacion() {
+        return fechaAplicacion;
+    }
+
+    public Mascota getMascota() {
+        return mascota;
+    }
+
+    public Vacuna getVacuna() {
+        return vacuna;
+    }
+
+    public Veterinario getVeterinario() {
+        return veterinario;
+    }
+
+    
     public boolean estaVigente(LocalDate fechaActual){
         if (fechaActual == null) {
             throw new DatosInvalidosException(
@@ -73,6 +90,19 @@ public class AplicacionVacuna {
         return estaVigente(fechaActual)
             && !fechaProximaDosis.isAfter(fechaActual.plusDays(30));
 
+    }
+
+    public void validarNuevaAplicacion(LocalDate fechaNuevaAplicacion) {
+        if (fechaNuevaAplicacion == null || fechaNuevaAplicacion.isBefore(fechaAplicacion)) {
+            throw new DatosInvalidosException(
+                "La nueva aplicación no puede ser anterior a la última registrada."
+            );   
+        }
+
+        if (estaVigente(fechaNuevaAplicacion)) {
+            throw new DatosInvalidosException(
+                "La mascota todavía tiene la vacuna vigente.");
+        }
     }
 
 }

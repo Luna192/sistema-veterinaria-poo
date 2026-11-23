@@ -3,6 +3,7 @@ package com.veterinaria.modelo;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+import com.veterinaria.modelo.excepciones.DatosInvalidosException;
 
 class AplicacionVacunaTest {
 
@@ -26,24 +27,13 @@ class AplicacionVacunaTest {
     
     assertTrue(aplicacion.estaProximaAVencer(LocalDate.of(2026, 10, 23)));
     assertFalse(aplicacion.estaProximaAVencer(LocalDate.of(2026, 10, 22)));
+
+    assertThrows(DatosInvalidosException.class, 
+        () -> aplicacion.validarNuevaAplicacion(LocalDate.of(2026, 11, 1)));
+
+    assertDoesNotThrow(
+        () -> aplicacion.validarNuevaAplicacion(LocalDate.of(2026, 11, 22)));
     
     }
-
-    public LocalDate getFechaAplicacion() {
-        return fechaAplicacion;
-    }
-
-    public Mascota getMascota() {
-        return mascota;
-    }
-
-    public Vacuna getVacuna() {
-        return vacuna;
-    }
-
-    public Veterinario getVeterinario() {
-        return veterinario;
-    }
-
 
 }
