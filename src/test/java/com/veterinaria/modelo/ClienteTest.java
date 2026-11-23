@@ -1,8 +1,6 @@
 package com.veterinaria.modelo;
 
 import com.veterinaria.modelo.excepciones.DatosInvalidosException;
-import com.veterinaria.modelo.excepciones.EntidadInactivaException;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -17,16 +15,15 @@ class ClienteTest {
     }
 
     private Mascota registrar(Cliente cliente, String ficha) {
-        return cliente.registrarMascota(ficha, "Toby", Especie.PERRO, "",
-                LocalDate.of(2020, 1, 1), BigDecimal.TEN);
+        return cliente.registrarMascota(
+            ficha, "Toby", Especie.PERRO, "",
+            LocalDate.of(2020, 1, 1));
     }
 
     @Test
     void clienteComienzaActivoSinMascotas() {
         Cliente ana = cliente();
-        assertTrue(ana.estaActivo());
         assertTrue(ana.getMascotas().isEmpty());
-        assertTrue(ana.getEmail().isEmpty());
     }
 
     @ParameterizedTest
@@ -83,21 +80,33 @@ class ClienteTest {
     }
 
     @Test
-    void nombresIgualesNoConfundenLaIdentidad() {
+    void nombresIgualesNoConfundenLaIdentidad() {     // Verifica que dos mascotas con el mismo nombre pero diferente ficha sean tratadas como entidades distintas.
         Cliente ana = cliente();
         Mascota primero = registrar(ana, "F-1");
         Mascota segundo = registrar(ana, "F-2");
+
         assertEquals(primero.getNombre(), segundo.getNombre());
         assertNotSame(primero, segundo);
-        primero.actualizarPeso(new BigDecimal("11"));
-        assertEquals(BigDecimal.TEN, segundo.getPeso());
+
+        primero.editarDatos(
+            "Tobías", Especie.PERRO, "", 
+            LocalDate.of(2020, 1, 1)
+        );
+
+        assertEquals("Tobías", primero.getNombre());
+        assertEquals("Toby", segundo.getNombre());
     }
 
     @Test
-    void datosInvalidosNoAgreganUnaMascotaParcial() {
+    void datosInvalidosNoAgreganUnaMascotaParcial() {   // Verifica que si se intenta registrar una mascota con datos inválidos, no se agregue a la lista de mascotas del cliente.
         Cliente ana = cliente();
-        assertThrows(DatosInvalidosException.class, () -> ana.registrarMascota(
-                "F-1", "Toby", Especie.PERRO, "", LocalDate.of(2020, 1, 1), BigDecimal.ZERO));
+
+        assertThrows(DatosInvalidosException.class, 
+            () -> ana.registrarMascota(
+                "F-1", "", Especie.PERRO, "", 
+                LocalDate.of(2020, 1, 1)
+            )
+        );
         assertTrue(ana.getMascotas().isEmpty());
     }
 
@@ -113,13 +122,5 @@ class ClienteTest {
         assertSame(toby, ana.getMascotas().get(0));
     }
 
-    @Test
-    void bajaDeClienteConservaMascotasEImpideAltas() {
-        Cliente ana = cliente();
-        Mascota toby = registrar(ana, "F-1");
-        ana.darDeBaja();
-        assertFalse(ana.estaActivo());
-        assertSame(toby, ana.getMascotas().get(0));
-        assertThrows(EntidadInactivaException.class, () -> registrar(ana, "F-2"));
-    }
+
 }
