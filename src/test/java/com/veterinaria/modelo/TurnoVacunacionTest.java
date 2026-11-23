@@ -67,4 +67,52 @@ class TurnoVacunacionTest {
         );
 
     }
+
+    @Test
+    void rechazaVacunaVigenteSinModificarElDetalle() {
+    LocalDate hoy = LocalDate.now();
+
+    Cliente ana = new Cliente(
+        "Ana", "Pérez", "123", "123456", ""
+    );
+
+    Mascota toby = ana.registrarMascota(
+        "F-1", "Toby", Especie.PERRO, "",
+        hoy.minusYears(3)
+    );
+
+    Veterinario veterinario = new Veterinario(
+        "MAT-123", "Laura", "Sosa"
+    );
+
+    Vacuna vacuna = new Vacuna("Antirrábica", "Rabia", 12);
+
+    AplicacionVacuna anterior = new AplicacionVacuna(
+        toby, vacuna, veterinario, hoy.minusMonths(1)
+    );
+
+    Vacunacion servicio = new Vacunacion(
+        "Aplicación de vacuna", new BigDecimal("15000"), 15
+    );
+
+    DetalleTurno detalle = new DetalleTurno(servicio);
+
+    Turno turno = new Turno(
+        toby, veterinario, List.of(detalle),
+        hoy.plusDays(1).atTime(10, 0)
+    );
+
+    turno.confirmar();
+
+    assertThrows(DatosInvalidosException.class,
+        () -> turno.registrarVacunacion(
+            detalle, vacuna, hoy, Optional.of(anterior)
+        )
+    );
+
+    assertTrue(detalle.getAplicacionVacuna().isEmpty());
+    assertEquals(EstadoTurno.CONFIRMADO, turno.getEstado());
+    
+    }
+
 }

@@ -32,14 +32,23 @@ public class Turno implements Facturable {
         if (detalles == null || detalles.isEmpty() || detalles.stream().anyMatch(detalle -> detalle == null)) {
             throw new DatosInvalidosException("El turno debe contener al menos un servicio.");
         }
+
         validarServiciosNoRepetidos(detalles);
         validarEspeciesAdmitidas(mascota, detalles);
         validarVeterinario(veterinario, detalles);
+
+        for (DetalleTurno detalle : detalles){
+            detalle.validarDisponibleParaAsignacion();
+        }
 
         this.mascota = mascota;
         this.veterinario = veterinario;
         this.detalles = List.copyOf(detalles);
         this.fechaHoraInicio = fechaHoraInicio;
+
+        for (DetalleTurno detalle : this.detalles) {
+            detalle.asignarTurno(this);
+        }
     }
 
     public void confirmar() {
@@ -88,6 +97,33 @@ public class Turno implements Facturable {
     public LocalDateTime calcularFechaHoraFin() {
         return fechaHoraInicio.plusMinutes(calcularDuracionTotal());
     }
+
+    public LocalDateTime calcularInicioDetalle(DetalleTurno detalle) {
+    if (detalle == null || !detalles.contains(detalle)) {
+        throw new DatosInvalidosException(
+            "El detalle no pertenece al turno."
+        );
+    }
+
+    LocalDateTime inicio = fechaHoraInicio;
+
+    for (DetalleTurno actual : detalles) {
+        if (actual == detalle) {
+            return inicio;
+            }
+
+        inicio = inicio.plusMinutes(actual.getDuracionMinutos());
+        }
+
+        throw new DatosInvalidosException(
+            "El detalle no pertenece al turno."
+        );
+    }
+
+    public LocalDateTime calcularFinDetalle(DetalleTurno detalle) {
+        return calcularInicioDetalle(detalle)
+            .plusMinutes(detalle.getDuracionMinutos());
+}
 
     public boolean seSolapaCon(Turno otroTurno) {
         if (otroTurno == null || !ocupaHorario() || !otroTurno.ocupaHorario()) {
@@ -150,9 +186,13 @@ public class Turno implements Facturable {
 
             if (anterior.getMascota() != mascota
                 || anterior.getVacuna() != vacuna) {
-                throw new DatosInvalidosException("La aplicación anterior corresponder a la misma mascota.");
+                throw new DatosInvalidosException("La aplicación anterior debe corresponder a la misma mascota y vacuna.");
             }
+
+            anterior.validarNuevaAplicacion(fecha);
         }
+
+        
 
         AplicacionVacuna nuevaAplicacion = new AplicacionVacuna(mascota, vacuna, veterinario, fecha);
         detalle.vincularAplicacionVacuna(nuevaAplicacion);
@@ -215,4 +255,5 @@ public class Turno implements Facturable {
             throw new DatosInvalidosException(mensaje);
         }
     }
+
 }
