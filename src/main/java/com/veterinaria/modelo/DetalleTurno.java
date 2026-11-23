@@ -11,6 +11,7 @@ public class DetalleTurno {
     private String observaciones = "";
     private String diagnostico = "";
     private String tratamiento = "";
+    private AplicacionVacuna aplicacionVacuna;
 
     public DetalleTurno(Servicio servicio) {
         if (servicio == null) {
@@ -56,4 +57,21 @@ public class DetalleTurno {
         this.diagnostico = Validaciones.textoObligatorio(diagnostico, "El diagnóstico");
         this.tratamiento = Validaciones.textoOpcional(tratamiento);
     }
+
+    public Optional<AplicacionVacuna> getAplicacionVacuna() {
+        return Optional.ofNullable(aplicacionVacuna);
+    }
+
+    void vincularAplicacionVacuna(AplicacionVacuna aplicacionVacuna) {
+        if (aplicacionVacuna == null) {
+            throw new DatosInvalidosException("La aplicación de vacuna es obligatoria.");
+        }
+
+        if(this.aplicacionVacuna != null) {
+            throw new DatosInvalidosException("Ya existe una aplicación de vacuna vinculada a este detalle de turno.");
+        }
+        
+        this.aplicacionVacuna = aplicacionVacuna;
+    }
+
 }
