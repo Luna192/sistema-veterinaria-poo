@@ -44,6 +44,9 @@ public class Turno implements Facturable {
 
     public void confirmar() {
         exigirEstado(EstadoTurno.PENDIENTE, "Solo un turno pendiente puede confirmarse.");
+        if (!mascota.estaActiva()) {
+            throw new EntidadInactivaException("La mascota debe estar activa para confirmar el turno.");
+        }
         estado = EstadoTurno.CONFIRMADO;
     }
 
@@ -59,6 +62,9 @@ public class Turno implements Facturable {
 
     public void marcarAtendido() {
         exigirEstado(EstadoTurno.CONFIRMADO, "Solo un turno confirmado puede marcarse como atendido.");
+        if (!mascota.estaActiva()) {
+            throw new EntidadInactivaException("La mascota debe estar activa para marcar el turno como atendido.");
+        }
         boolean faltaDiagnostico = detalles.stream()
             .filter(detalle -> detalle.getServicio().requiereRegistroMedico())
             .anyMatch(detalle -> detalle.getDiagnostico().isEmpty());
@@ -97,6 +103,9 @@ public class Turno implements Facturable {
 
     public void registrarResultado(DetalleTurno detalle, String diagnostico, String tratamiento) {
         exigirEstado(EstadoTurno.CONFIRMADO, "Solo un turno confirmado puede registrar resultados.");
+        if (!mascota.estaActiva()) {
+            throw new EntidadInactivaException("La mascota debe estar activa para registrar resultados.");
+        }
         if (!detalles.contains(detalle)) {
             throw new DatosInvalidosException("El detalle no pertenece al turno.");
         }
