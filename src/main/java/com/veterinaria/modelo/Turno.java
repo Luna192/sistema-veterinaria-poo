@@ -92,6 +92,33 @@ public class Turno implements Facturable {
         return fechaHoraInicio.plusMinutes(calcularDuracionTotal());
     }
 
+    public LocalDateTime calcularInicioDetalle(DetalleTurno detalle) {
+    if (detalle == null || !detalles.contains(detalle)) {
+        throw new DatosInvalidosException(
+            "El detalle no pertenece al turno."
+        );
+    }
+
+    LocalDateTime inicio = fechaHoraInicio;
+
+    for (DetalleTurno actual : detalles) {
+        if (actual == detalle) {
+            return inicio;
+            }
+
+        inicio = inicio.plusMinutes(actual.getDuracionMinutos());
+        }
+
+        throw new DatosInvalidosException(
+            "El detalle no pertenece al turno."
+        );
+    }
+
+    public LocalDateTime calcularFinDetalle(DetalleTurno detalle) {
+        return calcularInicioDetalle(detalle)
+            .plusMinutes(detalle.getDuracionMinutos());
+}
+
     public boolean seSolapaCon(Turno otroTurno) {
         if (otroTurno == null || !ocupaHorario() || !otroTurno.ocupaHorario()) {
             return false;
@@ -219,4 +246,5 @@ public class Turno implements Facturable {
             throw new DatosInvalidosException(mensaje);
         }
     }
+
 }
