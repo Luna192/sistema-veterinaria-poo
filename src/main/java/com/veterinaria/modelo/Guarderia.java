@@ -18,6 +18,10 @@ public class Guarderia extends Servicio {
         return cupoMaximo;
     }
 
+    public boolean tieneCupo(int cantidadOcupada) {
+        return cantidadOcupada < cupoMaximo;
+    }
+
     @Override
     public boolean requiereVeterinario() {
         return false;

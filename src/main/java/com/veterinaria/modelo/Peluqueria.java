@@ -8,6 +8,11 @@ public class Peluqueria extends Servicio {
     }
 
     @Override
+    public boolean admiteEspecie(Especie especie) {
+        return especie == Especie.PERRO || especie == Especie.GATO;
+    }
+
+    @Override
     public boolean requiereVeterinario() {
         return false;
     }
