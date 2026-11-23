@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.time.LocalDate;
 
 public class Turno {
     private EstadoTurno estado = EstadoTurno.PENDIENTE;
@@ -92,6 +93,53 @@ public class Turno {
             throw new DatosInvalidosException("El detalle no pertenece al turno.");
         }
         detalle.registrarResultado(diagnostico, tratamiento);
+    }
+
+    public AplicacionVacuna registrarVacunacion(DetalleTurno detalle, Vacuna vacuna, LocalDate fecha,
+        Optional<AplicacionVacuna> ultimaAplicacion) {
+
+        exigirEstado(
+            EstadoTurno.CONFIRMADO, "Solo un turno confirmado puede registrar vacunaciones.");
+        
+        if (detalle == null || !detalles.contains(detalle)) {
+            throw new DatosInvalidosException("El detalle no pertenece al turno.");
+        }
+
+        if (!(detalle.getServicio() instanceof Vacunacion)) {
+            throw new DatosInvalidosException("El detalle debe corresponder a un servicio de vacunación.");
+        }
+
+        if (vacuna == null) {
+            throw new DatosInvalidosException("Debe indicar qué vacuna se aplicó.");
+        }
+
+        if (veterinario == null) {
+            throw new DatosInvalidosException("La vacunacion requiere un veterinario asignado.");
+        }
+
+        if (detalle.getAplicacionVacuna().isPresent()) {
+            throw new DatosInvalidosException("Este detalle ya tiene una aplicación de vacuna registrada.");
+        }
+
+        if (ultimaAplicacion == null) {
+            throw new DatosInvalidosException("Debe indicar si existe una aplicación anterior.");
+        }
+
+        if (ultimaAplicacion.isPresent()) {
+            AplicacionVacuna anterior = ultimaAplicacion.get();
+
+            if (anterior.getMascota() != mascota
+                || anterior.getVacuna() != vacuna) {
+                throw new DatosInvalidosException("La aplicación anterior corresponder a la misma mascota.");
+            }
+
+            anterior.validarNuevaAplicacion(fecha);
+        }
+
+        AplicacionVacuna nuevaAplicacion = new AplicacionVacuna(mascota, vacuna, veterinario, fecha);
+        detalle.vincularAplicacionVacuna(nuevaAplicacion);
+        return nuevaAplicacion;
+
     }
 
     public EstadoTurno getEstado() {
