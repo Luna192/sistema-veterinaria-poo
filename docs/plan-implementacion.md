@@ -4,35 +4,77 @@
 **Docente:** Claudio Omar Biale  
 **Inicio de implementación:** 29 de octubre de 2026
 
-Se dispone de seis semanas. Con una dedicación de 6–8 horas semanales, el presupuesto es de aproximadamente 36–48 horas. El objetivo requiere mantener el alcance de tres pantallas, validar cada incremento y reservar la última semana para integración y defensa. El calendario es una planificación, no una garantía de finalización.
+Se dispone de seis semanas. Con una dedicación de 6–8 horas semanales, el presupuesto es de aproximadamente 36–48 horas. El objetivo requiere mantener el alcance de tres pantallas, validar cada incremento y reservar la última semana para integración y defensa. El calendario es una orientación general, no una garantía de finalización ni un inventario que deba actualizarse por cada modificación individual del código.
 
-| Periodo | Resultado verificable |
+## Etapas generales
+
+### 1. Modelo de dominio en Java
+
+Implementar las entidades, enumeraciones, relaciones, asociaciones y comportamientos definidos por el diagrama vigente en `docs/dc.json` y su representación visual.
+
+El modelo actual debe mantenerse compilable con Java 17, utilizando Maven Wrapper y las excepciones del dominio previstas. La persistencia y las interfaces gráficas no forman parte de esta etapa.
+
+### 2. Lógica de negocio
+
+Implementar y validar las reglas descritas en `docs/reglas-negocio.md`, respetando las responsabilidades de cada entidad y las decisiones vigentes del diagrama.
+
+Esta etapa incluye estados y transiciones de turnos, precios y duraciones históricos, disponibilidad de veterinario y mascota, cupos de guardería, vacunaciones e información clínica asociada a las prestaciones.
+
+### 3. Persistencia
+
+En una etapa posterior se incorporarán JPA/Hibernate y H2 en archivo, repositorios y transacciones. Esta etapa deberá conservar las asociaciones, identificadores técnicos, baja lógica vigente y datos históricos sin pérdida.
+
+No debe anticiparse persistencia mientras el proyecto se encuentre concentrado en el modelo de dominio y su lógica.
+
+### 4. Interfaz gráfica
+
+En una etapa posterior se desarrollará una aplicación de escritorio con JavaFX y tres pantallas:
+
+- Clientes y mascotas.
+- Turnos.
+- Historial médico y vacunaciones.
+
+La interfaz deberá apoyarse en las operaciones del dominio sin duplicar reglas de negocio ni modificar directamente el estado de las entidades.
+
+### 5. Integración y pruebas
+
+Realizar pruebas unitarias e integrales, validar los recorridos principales, ejecutar desde otra carpeta, revisar el UML y preparar el material final de entrega y defensa.
+
+Cada incremento debe compilar, superar las pruebas correspondientes y quedar documentado.
+
+## Cronograma orientativo
+
+| Periodo | Objetivo general |
 |---|---|
-| 29/10–04/11 | Maven, clientes, mascotas, enumeraciones, excepciones; continuar veterinarios y servicios. Pruebas del dominio. |
-| 05/11–11/11 | Turnos, detalles con horarios, estados, precios históricos, aplicaciones de vacunas y validación de disponibilidad. |
-| 12/11–18/11 | JPA/Hibernate y H2 en archivo; repositorios y transacciones. Guardar, cerrar y recuperar datos sin pérdida. |
-| 19/11–25/11 | Tres pantallas JavaFX: clientes/mascotas, turnos, historial/vacunaciones. Integración con servicios de aplicación. |
-| 26/11–02/12 | Completar recorridos, alertas de vacunas, validaciones y corrección de errores. Primera versión funcional completa. |
-| 03/12–09/12 | Pruebas integrales, ejecución desde otra carpeta, UML y decisiones finales, ZIP de entrega y preparación de defensa. |
+| 29/10–04/11 | Configuración inicial y primeras entidades del dominio. |
+| 05/11–11/11 | Servicios, turnos y reglas de disponibilidad. |
+| 12/11–18/11 | Persistencia con JPA/Hibernate y H2. |
+| 19/11–25/11 | Interfaz JavaFX y recorridos principales. |
+| 26/11–02/12 | Funcionalidades finales, validaciones y corrección de errores. |
+| 03/12–09/12 | Pruebas integrales, revisión de UML y preparación de entrega. |
 | 10/12 | Sistema listo y material de entrega revisado. |
 
-## Alcance del primer incremento
+## Decisiones vigentes
 
-- Proyecto Maven compilable con Java 17.
-- Maven Wrapper para Windows y Linux/macOS.
-- `Cliente`, `Mascota`, `Especie`, `Especialidad` y `EstadoTurno`.
-- Excepciones de datos inválidos y entidad inactiva.
-- Alta bidireccional, contacto, peso positivo, fecha válida, edad calculada y baja lógica.
-- Pruebas automáticas y demostración ejecutable en memoria.
+- El modelo vigente se define por `docs/dc.json` y su representación visual.
+- `docs/reglas-negocio.md` complementa el diagrama con comportamientos y validaciones.
+- `DetalleTurno` conserva el precio y la duración histórica de cada prestación.
+- El diagnóstico y el tratamiento se registran en `DetalleTurno`; no existe una entidad independiente llamada `RegistroMedico`.
+- Las consultas y vacunaciones requieren veterinario; guardería y peluquería no.
+- La peluquería registra indicaciones como observaciones opcionales de `DetalleTurno` y no utiliza un catálogo cerrado de tipos de corte.
+- El cupo de guardería corresponde a mascotas por día. Cuando una mascota se retira, su lugar queda liberado; la coordinación de reservas corresponde a la lógica encargada de gestionar los turnos.
+- El peso no forma parte del modelo vigente de `Mascota`.
+- El modelo vigente no contempla baja lógica de `Cliente` ni de `Veterinario`; la baja lógica permanece únicamente donde el diagrama y las reglas la definan.
 
-Los identificadores técnicos y anotaciones JPA se incorporarán con la persistencia. No se generan identificadores ficticios ni se confunden con el número de ficha.
+## Antecedentes históricos reemplazados
 
-La verificación global del DNI y del número de ficha requiere consultar el repositorio y agregar restricciones de base de datos. En este incremento solo se impide repetir una ficha dentro del mismo cliente; no se presenta esa comprobación como unicidad global implementada.
+Las siguientes ideas formaron parte de diseños anteriores, pero no constituyen requisitos vigentes:
 
-## Decisión en revisión: cupo de guardería
+- Peso positivo de `Mascota`.
+- Baja lógica de `Cliente`.
+- Baja lógica de `Veterinario`.
+- Una clase independiente `RegistroMedico`.
+- Una clase `TipoCorte`.
+- Interpretación de guardería como reutilizable por franja horaria.
 
-El 29/10 se reabrió la interpretación del cupo: total de admisiones diarias frente a capacidad simultánea que se libera al retirarse la mascota. No se implementa todavía ninguna de las dos alternativas. Las reglas y el UML previos documentan la interpretación diaria anterior; esa parte queda provisional hasta confirmar la aclaración. Este punto no bloquea clientes, mascotas, turnos clínicos ni persistencia.
-
-## Criterio de avance
-
-Cada incremento debe compilar, superar sus pruebas y quedar documentado. La interfaz final será JavaFX; la demostración actual por consola solo comprueba el primer incremento del dominio. Las horas de estudio y revisión deben formar parte de la dedicación semanal para que la alumna pueda explicar el código.
+Estas decisiones pueden conservarse como antecedente histórico en la bitácora, pero no deben guiar nuevas implementaciones.
