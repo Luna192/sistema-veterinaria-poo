@@ -505,3 +505,62 @@ Se agregaron pruebas para altas inválidas, asociaciones, nombres iguales de obj
 
 **Archivos afectados:** `pom.xml`, Maven Wrapper, `src/main/java`, `src/test/java`, `README.md`, esta bitácora y `plan-implementacion.md`.
 
+## 22/11/2026 — Actualización del modelo según la última revisión del diagrama de clases
+
+### 1. Motivo de la actualización
+
+Se realizó una nueva revisión del diagrama de clases del Sistema de Gestión Veterinaria, que fue revisado por el profesor.
+
+Esta versión del diagrama reemplaza decisiones de diseño anteriores que habían quedado documentadas en esta bitácora y en `reglas-negocio.md`.
+
+A partir de esta revisión, el diagrama vigente es la referencia principal para definir la estructura del modelo: clases, atributos, métodos, relaciones, multiplicidades y responsabilidades.
+
+Las decisiones anteriores se conservan como parte del historial, pero no deben utilizarse como requisitos vigentes cuando contradigan el modelo actual.
+
+### 2. Decisiones anteriores reemplazadas
+
+Se identificaron las siguientes diferencias respecto de versiones anteriores:
+
+- **Cliente:** ya no contempla un atributo de actividad ni métodos para realizar una baja lógica. Las decisiones anteriores que establecían la desactivación de clientes quedan reemplazadas.
+- **Veterinario:** ya no contempla un atributo de actividad ni métodos para realizar una baja lógica. Las decisiones anteriores que establecían la desactivación de veterinarios quedan reemplazadas.
+- **Mascota:** se mantiene la baja lógica mediante el atributo `activa` y los métodos correspondientes. El atributo `peso` deja de formar parte del modelo vigente.
+- **Registro médico:** no se contempla una clase independiente `RegistroMedico`. La información médica se registra mediante los atributos `diagnostico` y `tratamiento` de `DetalleTurno`.
+- **Guardería:** se mantiene como una subclase de `Servicio`. La gestión de disponibilidad debe respetar el cupo máximo diario. Según la aclaración incorporada al diagrama vigente, cuando una mascota se retira, el lugar queda liberado.
+- **Peluquería:** no se contempla una clase `TipoCorte`. Las observaciones correspondientes se registran en `DetalleTurno`.
+
+### 3. Criterios del modelo vigente
+
+Se ratifican los siguientes criterios:
+
+- `Servicio` es una clase abstracta e implementa `Facturable`.
+- `Turno` también implementa `Facturable`.
+- `DetalleTurno` representa los servicios incluidos en un turno y conserva el precio y la duración correspondientes al momento de la contratación.
+- Cada detalle tiene su propio inicio programado.
+- La duración total y los horarios del turno se calculan considerando sus detalles.
+- `requiereRegistroMedico()` y `requiereVeterinario()` permiten establecer comportamientos diferentes según el tipo de servicio.
+- Las consultas y vacunaciones requieren veterinario; guardería y peluquería no.
+- La disponibilidad de guardería y la coordinación de turnos deben respetar las responsabilidades definidas en el modelo.
+- El historial médico se obtiene a partir de la información registrada en los turnos y sus detalles, sin incorporar una entidad independiente que no figure en el diagrama.
+
+### 4. Consecuencias para la implementación
+
+La implementación debe revisarse para evitar que se incorporen atributos, métodos o clases pertenecientes a versiones anteriores del diseño.
+
+En particular:
+
+- No implementar baja lógica para `Cliente` ni `Veterinario`.
+- No incorporar `peso` a `Mascota`.
+- No crear una clase independiente `RegistroMedico`.
+- No incorporar una clase `TipoCorte`.
+- Mantener la baja lógica únicamente para `Mascota`.
+- Ajustar las reglas de guardería a la liberación del lugar cuando se retira una mascota.
+
+Las clases existentes deben contrastarse con el diagrama vigente y con `reglas-negocio.md` antes de realizar modificaciones.
+
+### 5. Criterio de documentación
+
+Se actualiza `reglas-negocio.md` para que describa el comportamiento esperado del modelo vigente.
+
+Esta bitácora conserva las decisiones anteriores con valor histórico. Cuando una decisión anterior queda reemplazada, debe identificarse expresamente como tal para evitar que se interprete como una regla actual.
+
+Las dudas que no estén resueltas por el diagrama o por los requisitos aprobados deben quedar identificadas como pendientes de definición, sin agregar comportamientos por suposición.
