@@ -72,6 +72,10 @@ public class RegistroVacunaciones{
     Optional<AplicacionVacuna> ultima =
         buscarUltimaAplicacion(turno.getMascota(), vacuna);
 
+    if (ultima.isPresent()) {
+        ultima.get().validarNuevaAplicacion(fecha);
+    }
+
     AplicacionVacuna nueva = turno.registrarVacunacion(
         detalle, vacuna, fecha, ultima
     );
