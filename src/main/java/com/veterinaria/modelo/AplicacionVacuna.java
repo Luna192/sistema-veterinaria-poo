@@ -43,5 +43,36 @@ public class AplicacionVacuna {
             );   
         }
 
+        this.mascota = mascota;
+        this.vacuna = vacuna;
+        this.veterinario = veterinario;
+        this.fechaAplicacion = fechaAplicacion;
+        this.fechaProximaDosis = calcularFechaProximaDosis();
+
     }
+
+    private LocalDate calcularFechaProximaDosis() {
+        return fechaAplicacion.plusMonths(vacuna.getPeriodicidadMeses());
+    }
+
+    public LocalDate getFechaProximaDosis() {
+        return fechaProximaDosis;
+    }
+
+    public boolean estaVigente(LocalDate fechaActual){
+        if (fechaActual == null) {
+            throw new DatosInvalidosException(
+                "La fecha de consulta es obligatoria."
+            );   
+        }
+
+        return !fechaActual.isBefore(fechaAplicacion) && fechaActual.isBefore(fechaProximaDosis);
+    }
+
+    public boolean estaProximaAVencer(LocalDate fechaActual) {
+        return estaVigente(fechaActual)
+            && !fechaProximaDosis.isAfter(fechaActual.plusDays(30));
+
+    }
+
 }

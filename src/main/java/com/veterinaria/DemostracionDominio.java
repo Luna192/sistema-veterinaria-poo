@@ -8,7 +8,6 @@ import com.veterinaria.modelo.Veterinario;
 import com.veterinaria.modelo.Especialidad;
 import com.veterinaria.modelo.excepciones.EntidadInactivaException;
 import com.veterinaria.modelo.excepciones.DatosInvalidosException;
-import java.util.Set;
 import java.time.LocalDate;
 
 /** Demostración en memoria. La interfaz final se desarrollará con JavaFX. */
@@ -58,11 +57,12 @@ public final class DemostracionDominio {
 
 
         Veterinario laura = new Veterinario(
-            "Laura",
-            "Sosa",
             "MAT-123",
-            Set.of(Especialidad.CLINICA_GENERAL)
+            "Laura",
+            "Sosa"
         );
+
+        laura.agregarEspecialidad(Especialidad.CLINICA_GENERAL);
 
         System.out.println(
             "Veterinario: " + laura.getNombre() + " " + laura.getApellido()
