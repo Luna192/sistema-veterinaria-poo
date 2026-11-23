@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.time.LocalDate;
 
-public class Turno {
+public class Turno implements Facturable {
     private EstadoTurno estado = EstadoTurno.PENDIENTE;
     private final LocalDateTime fechaHoraInicio;
     private final Mascota mascota;
@@ -33,6 +33,7 @@ public class Turno {
             throw new DatosInvalidosException("El turno debe contener al menos un servicio.");
         }
         validarServiciosNoRepetidos(detalles);
+        validarEspeciesAdmitidas(mascota, detalles);
         validarVeterinario(veterinario, detalles);
 
         this.mascota = mascota;
@@ -58,9 +59,16 @@ public class Turno {
 
     public void marcarAtendido() {
         exigirEstado(EstadoTurno.CONFIRMADO, "Solo un turno confirmado puede marcarse como atendido.");
+        boolean faltaDiagnostico = detalles.stream()
+            .filter(detalle -> detalle.getServicio().requiereRegistroMedico())
+            .anyMatch(detalle -> detalle.getDiagnostico().isEmpty());
+        if (faltaDiagnostico) {
+            throw new DatosInvalidosException("Debe registrarse el diagnóstico de la consulta médica.");
+        }
         estado = EstadoTurno.ATENDIDO;
     }
 
+    @Override
     public BigDecimal calcularImporte() {
         return detalles.stream()
                 .map(DetalleTurno::getPrecioCongelado)
@@ -91,6 +99,9 @@ public class Turno {
         exigirEstado(EstadoTurno.CONFIRMADO, "Solo un turno confirmado puede registrar resultados.");
         if (!detalles.contains(detalle)) {
             throw new DatosInvalidosException("El detalle no pertenece al turno.");
+        }
+        if (!detalle.getServicio().requiereRegistroMedico()) {
+            throw new DatosInvalidosException("El servicio no requiere registro médico.");
         }
         detalle.registrarResultado(diagnostico, tratamiento);
     }
@@ -132,8 +143,6 @@ public class Turno {
                 || anterior.getVacuna() != vacuna) {
                 throw new DatosInvalidosException("La aplicación anterior debe corresponder a la misma mascota y vacuna.");
             }
-
-            anterior.validarNuevaAplicacion(fecha);
         }
 
         AplicacionVacuna nuevaAplicacion = new AplicacionVacuna(mascota, vacuna, veterinario, fecha);
@@ -169,9 +178,6 @@ public class Turno {
         if (requiereVeterinario && veterinario == null) {
             throw new DatosInvalidosException("El turno requiere un veterinario.");
         }
-        if (veterinario != null && !veterinario.estaActivo()) {
-            throw new EntidadInactivaException("El veterinario debe estar activo.");
-        }
     }
 
     private void validarServiciosNoRepetidos(List<DetalleTurno> detalles) {
@@ -179,6 +185,18 @@ public class Turno {
         for (DetalleTurno detalle : detalles) {
             if (!servicios.add(detalle.getServicio())) {
                 throw new DatosInvalidosException("No se puede repetir un servicio en el mismo turno.");
+            }
+        }
+    }
+
+    private void validarEspeciesAdmitidas(Mascota mascota, List<DetalleTurno> detalles) {
+        Especie especie = mascota.getEspecie();
+        for (DetalleTurno detalle : detalles) {
+            Servicio servicio = detalle.getServicio();
+            if (!servicio.admiteEspecie(especie)) {
+                throw new DatosInvalidosException(
+                    "El servicio " + servicio.getNombre() + " no admite la especie " + especie + "."
+                );
             }
         }
     }
