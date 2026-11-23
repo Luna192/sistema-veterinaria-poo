@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-public class Turno {
+public class Turno implements Facturable {
     private EstadoTurno estado = EstadoTurno.PENDIENTE;
     private final LocalDateTime fechaHoraInicio;
     private final Mascota mascota;
@@ -60,6 +60,7 @@ public class Turno {
         estado = EstadoTurno.ATENDIDO;
     }
 
+    @Override
     public BigDecimal calcularImporte() {
         return detalles.stream()
                 .map(DetalleTurno::getPrecioCongelado)
