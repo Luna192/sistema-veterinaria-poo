@@ -4,15 +4,48 @@ import java.util.List;
 import java.time.LocalDate;
 import java.util.Optional;
 import com.veterinaria.modelo.excepciones.DatosInvalidosException;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "clientes")
 
 public class Cliente {              // Clase que representa a un cliente de la veterinaria.
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
     private String nombre;
+
+    @Column(nullable = false)
     private String apellido;
+
+    @Column(nullable = false)
     private String dni;
+
+    @Column(nullable = false)
     private String telefono;
+
+    @Column(nullable = false)
     private String email;
+
+    @OneToMany(
+        mappedBy = "cliente",
+        cascade = {CascadeType.PERSIST, CascadeType.MERGE}
+    )
     private List<Mascota> mascotas = new ArrayList<>();
+    
+    protected Cliente() {
+        // Constructor requerido por JPA.
+    }
 
     public Cliente(String nombre, String apellido, String dni, String telefono, String email) {     // Constructor de la clase Cliente.
         this.nombre = Validaciones.textoObligatorio(nombre, "El nombre");
@@ -30,6 +63,10 @@ public class Cliente {              // Clase que representa a un cliente de la v
 
     public String getDni() {
         return dni;
+    }
+
+    public Long getId() {
+    return id;
     }
 
     public void actualizarContacto(String telefono, String email) {         // Método para actualizar el contacto del cliente.
@@ -93,5 +130,6 @@ public class Cliente {              // Clase que representa a un cliente de la v
 
     mascotas.add(nuevaMascota);  // Agrega la nueva mascota a la lista de mascotas del cliente.
     return nuevaMascota;        // Devuelve la nueva mascota creada.
-}
+    }
+
 }
