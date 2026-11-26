@@ -100,4 +100,41 @@ public class RegistroVacunaciones{
         .toList(); 
     }
 
+    public List<AplicacionVacuna> consultarAlertas(LocalDate fechaActual) {
+    if (fechaActual == null) {
+        throw new DatosInvalidosException(
+            "La fecha de consulta es obligatoria."
+        );
+    }
+
+    List<AplicacionVacuna> alertas = new ArrayList<>();
+
+    for (AplicacionVacuna aplicacion : aplicaciones) {
+        Optional<AplicacionVacuna> ultima = buscarUltimaAplicacion(
+            aplicacion.getMascota(),
+            aplicacion.getVacuna()
+        );
+
+        if (ultima.orElseThrow() != aplicacion) {
+            continue;
+        }
+
+        boolean vencida =
+            !fechaActual.isBefore(aplicacion.getFechaProximaDosis());
+
+        boolean proximaAVencer =
+            aplicacion.estaProximaAVencer(fechaActual);
+
+        if (vencida || proximaAVencer) {
+            alertas.add(aplicacion);
+        }
+    }
+
+    alertas.sort(Comparator.comparing(
+        AplicacionVacuna::getFechaProximaDosis
+    ));
+
+    return List.copyOf(alertas);
+    }
+
 }

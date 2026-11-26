@@ -122,4 +122,50 @@ class RegistroVacunacionesTest {
     assertSame(reciente, resultado.get(1));
     }
 
+    @Test
+    void alertasConsideranSoloLaUltimaAplicacionDeCadaVacuna() {
+    RegistroVacunaciones registro = new RegistroVacunaciones();
+    LocalDate hoy = LocalDate.now();
+
+    Cliente ana = new Cliente(
+        "Ana", "Pérez", "123", "123456", ""
+    );
+
+    Mascota toby = ana.registrarMascota(
+        "F-1", "Toby", Especie.PERRO, "",
+        hoy.minusYears(5)
+    );
+
+    Veterinario veterinario = new Veterinario(
+        "MAT-1", "Laura", "Sosa"
+    );
+
+    Vacuna renovada = new Vacuna("Vacuna A", "Enfermedad A", 12);
+    Vacuna vencida = new Vacuna("Vacuna B", "Enfermedad B", 12);
+    Vacuna proxima = new Vacuna("Vacuna C", "Enfermedad C", 12);
+
+    registro.registrarSinTurno(
+        toby, renovada, veterinario, hoy.minusYears(2)
+    );
+
+    registro.registrarSinTurno(
+        toby, renovada, veterinario, hoy
+    );
+
+    AplicacionVacuna porVencer = registro.registrarSinTurno(
+        toby, proxima, veterinario,
+        hoy.minusMonths(12).plusDays(15)
+    );
+
+    AplicacionVacuna yaVencida = registro.registrarSinTurno(
+        toby, vencida, veterinario, hoy.minusYears(2)
+    );
+
+    var alertas = registro.consultarAlertas(hoy);
+
+    assertEquals(2, alertas.size());
+    assertSame(yaVencida, alertas.get(0));
+    assertSame(porVencer, alertas.get(1));
+    }
+
 }
