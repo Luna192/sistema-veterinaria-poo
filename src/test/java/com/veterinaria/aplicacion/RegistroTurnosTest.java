@@ -84,4 +84,52 @@ class RegistroTurnosTest {
         assertDoesNotThrow(() -> registro.registrar(contiguo));
         assertEquals(2, registro.getTurnos().size());
     }
+
+        @Test
+        void permiteReservarElHorarioDeUnTurnoCancelado() {
+        RegistroTurnos registro = new RegistroTurnos();
+
+        Cliente ana = new Cliente(
+            "Ana", "Pérez", "123", "123456", ""
+        );
+
+        Mascota toby = ana.registrarMascota(
+            "F-1", "Toby", Especie.PERRO, "",
+            LocalDate.now().minusYears(3)
+        );
+
+        Veterinario laura = new Veterinario(
+            "MAT-1", "Laura", "Sosa"
+        );
+
+        ConsultaMedica consulta = new ConsultaMedica(
+            "Consulta", new BigDecimal("20000"), 30
+        );
+
+        LocalDateTime ahora = LocalDateTime.now();
+        LocalDateTime inicio = ahora.plusDays(3);
+
+        Turno original = new Turno(
+            toby, laura,
+            List.of(new DetalleTurno(consulta)),
+            inicio
+        );
+
+        registro.registrar(original);
+        original.cancelar(ahora);
+
+        Turno reemplazo = new Turno(
+            toby, laura,
+            List.of(new DetalleTurno(consulta)),
+            inicio
+        );
+
+        assertDoesNotThrow(() -> registro.registrar(reemplazo));
+
+        assertEquals(EstadoTurno.CANCELADO, original.getEstado());
+        assertEquals(2, registro.getTurnos().size());
+        assertSame(original, registro.getTurnos().get(0));
+        assertSame(reemplazo, registro.getTurnos().get(1));
+    }
+
 }
