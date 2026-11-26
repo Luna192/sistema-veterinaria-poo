@@ -4,6 +4,9 @@ import com.veterinaria.modelo.Turno;
 import com.veterinaria.modelo.excepciones.DatosInvalidosException;
 import java.util.ArrayList;
 import java.util.List;
+import com.veterinaria.modelo.Mascota;
+import com.veterinaria.modelo.EstadoTurno;
+import java.util.Comparator;
 
 public class RegistroTurnos {
     private final List<Turno> turnos = new ArrayList<>();
@@ -41,5 +44,19 @@ public class RegistroTurnos {
 
     public List<Turno> getTurnos() {
         return List.copyOf(turnos);
+    }
+
+    public List<Turno> consultarHistorial(Mascota mascota) {
+    if (mascota == null) {
+        throw new DatosInvalidosException(
+            "La mascota es obligatoria."
+        );
+    }
+
+    return turnos.stream()
+        .filter(turno -> turno.getMascota() == mascota)
+        .filter(turno -> turno.getEstado() == EstadoTurno.ATENDIDO)
+        .sorted(Comparator.comparing(Turno::getFechaHoraInicio))
+        .toList();
     }
 }

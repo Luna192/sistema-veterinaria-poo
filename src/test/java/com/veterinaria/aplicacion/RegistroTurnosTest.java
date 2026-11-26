@@ -132,4 +132,87 @@ class RegistroTurnosTest {
         assertSame(reemplazo, registro.getTurnos().get(1));
     }
 
+        @Test
+        void historialIncluyeSoloAtendidosYLosOrdenaPorFecha() {
+        RegistroTurnos registro = new RegistroTurnos();
+
+        Cliente ana = new Cliente(
+            "Ana", "Pérez", "123", "123456", ""
+        );
+
+        Mascota toby = ana.registrarMascota(
+            "F-1", "Toby", Especie.PERRO, "",
+            LocalDate.now().minusYears(3)
+        );
+
+        Mascota luna = ana.registrarMascota(
+            "F-2", "Luna", Especie.GATO, "",
+            LocalDate.now().minusYears(2)
+        );
+
+        Peluqueria servicio = new Peluqueria(
+            "Peluquería", new BigDecimal("10000"), 30
+        );
+
+        LocalDateTime inicio =
+            LocalDate.now().plusDays(3).atTime(10, 0);
+
+        Turno primero = new Turno(
+            toby, null, List.of(new DetalleTurno(servicio)), inicio
+        );
+
+        Turno segundo = new Turno(
+            toby, null, List.of(new DetalleTurno(servicio)),
+            inicio.plusDays(1)
+        );
+
+        Turno pendiente = new Turno(
+            toby, null, List.of(new DetalleTurno(servicio)),
+            inicio.plusDays(2)
+        );
+
+        Turno confirmado = new Turno(
+            toby, null, List.of(new DetalleTurno(servicio)),
+            inicio.plusDays(3)
+        );
+
+        Turno cancelado = new Turno(
+            toby, null, List.of(new DetalleTurno(servicio)),
+            inicio.plusDays(4)
+        );
+
+        Turno deOtraMascota = new Turno(
+            luna, null, List.of(new DetalleTurno(servicio)),
+            inicio.plusDays(5)
+        );
+
+        // Los registramos desordenados para comprobar el orden del historial.
+        registro.registrar(segundo);
+        registro.registrar(pendiente);
+        registro.registrar(primero);
+        registro.registrar(confirmado);
+        registro.registrar(cancelado);
+        registro.registrar(deOtraMascota);
+
+        primero.confirmar();
+        primero.marcarAtendido();
+
+        segundo.confirmar();
+        segundo.marcarAtendido();
+
+        confirmado.confirmar();
+        cancelado.cancelar(inicio.minusDays(3));
+
+        deOtraMascota.confirmar();
+        deOtraMascota.marcarAtendido();
+
+        toby.darDeBaja();
+
+        List<Turno> historial = registro.consultarHistorial(toby);
+
+        assertEquals(2, historial.size());
+        assertSame(primero, historial.get(0));
+        assertSame(segundo, historial.get(1));
+    }
+
 }
