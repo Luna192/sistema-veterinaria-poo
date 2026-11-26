@@ -135,4 +135,70 @@ class TurnoTest {
             turno.calcularFechaHoraFin()
         );
     }
+
+        @Test
+        void comparaSoloLosIntervalosQueRequierenVeterinario() {
+        Cliente ana = new Cliente(
+            "Ana", "Pérez", "123", "123456", ""
+        );
+
+        Mascota toby = ana.registrarMascota(
+            "F-1", "Toby", Especie.PERRO, "",
+            LocalDate.now().minusYears(3)
+        );
+
+        Mascota luna = ana.registrarMascota(
+            "F-2", "Luna", Especie.GATO, "",
+            LocalDate.now().minusYears(2)
+        );
+
+        Veterinario veterinario = new Veterinario(
+            "MAT-123", "Laura", "Sosa"
+        );
+
+        ConsultaMedica consulta = new ConsultaMedica(
+            "Consulta", new BigDecimal("20000"), 30
+        );
+
+        Peluqueria peluqueria = new Peluqueria(
+            "Peluquería", new BigDecimal("10000"), 60
+        );
+
+        LocalDateTime inicio =
+            LocalDate.now().plusDays(2).atTime(10, 0);
+
+        Turno primero = new Turno(
+            toby, veterinario,
+            List.of(
+                new DetalleTurno(consulta),
+                new DetalleTurno(peluqueria)
+            ),
+            inicio
+        );
+
+        Turno superpuesto = new Turno(
+            luna, veterinario,
+            List.of(new DetalleTurno(consulta)),
+            inicio.plusMinutes(15)
+        );
+
+        Turno contiguo = new Turno(
+            luna, veterinario,
+            List.of(new DetalleTurno(consulta)),
+            inicio.plusMinutes(30)
+        );
+
+        assertTrue(primero.seSolapaVeterinarioCon(superpuesto));
+        assertTrue(superpuesto.seSolapaVeterinarioCon(primero));
+
+        assertFalse(primero.seSolapaVeterinarioCon(contiguo));
+        assertFalse(contiguo.seSolapaVeterinarioCon(primero));
+
+        assertTrue(primero.seSolapaCon(contiguo));
+
+        superpuesto.cancelar(inicio.minusDays(2));
+
+        assertFalse(primero.seSolapaVeterinarioCon(superpuesto));
+    }
+
 }

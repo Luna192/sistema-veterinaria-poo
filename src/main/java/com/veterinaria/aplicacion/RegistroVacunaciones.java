@@ -10,6 +10,7 @@ import com.veterinaria.modelo.Veterinario;
 import java.time.LocalDate;
 import com.veterinaria.modelo.Turno;
 import com.veterinaria.modelo.DetalleTurno;
+import java.util.Comparator;
 
 public class RegistroVacunaciones{
     private final List<AplicacionVacuna> aplicaciones = new ArrayList<>();
@@ -82,6 +83,58 @@ public class RegistroVacunaciones{
 
     aplicaciones.add(nueva);
     return nueva;   
+    }
+
+    public List<AplicacionVacuna> consultarAplicaciones(Mascota mascota) {
+    if (mascota == null) {
+        throw new DatosInvalidosException(
+            "La mascota es obligatoria."
+        );
+    }
+
+    return aplicaciones.stream()
+        .filter(aplicacion -> aplicacion.getMascota() == mascota)
+        .sorted(Comparator.comparing(
+            AplicacionVacuna::getFechaAplicacion
+        ))
+        .toList(); 
+    }
+
+    public List<AplicacionVacuna> consultarAlertas(LocalDate fechaActual) {
+    if (fechaActual == null) {
+        throw new DatosInvalidosException(
+            "La fecha de consulta es obligatoria."
+        );
+    }
+
+    List<AplicacionVacuna> alertas = new ArrayList<>();
+
+    for (AplicacionVacuna aplicacion : aplicaciones) {
+        Optional<AplicacionVacuna> ultima = buscarUltimaAplicacion(
+            aplicacion.getMascota(),
+            aplicacion.getVacuna()
+        );
+
+        if (ultima.orElseThrow() != aplicacion) {
+            continue;
+        }
+
+        boolean vencida =
+            !fechaActual.isBefore(aplicacion.getFechaProximaDosis());
+
+        boolean proximaAVencer =
+            aplicacion.estaProximaAVencer(fechaActual);
+
+        if (vencida || proximaAVencer) {
+            alertas.add(aplicacion);
+        }
+    }
+
+    alertas.sort(Comparator.comparing(
+        AplicacionVacuna::getFechaProximaDosis
+    ));
+
+    return List.copyOf(alertas);
     }
 
 }

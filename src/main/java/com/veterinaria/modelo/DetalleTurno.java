@@ -23,6 +23,23 @@ public class DetalleTurno {
         this.duracionMinutos = servicio.getDuracionMinutos();
     }
 
+    public DetalleTurno(Servicio servicio, int duracionMinutos) {
+        if (servicio == null) {
+            throw new DatosInvalidosException("El servicio es obligatorio.");
+        }
+        if (duracionMinutos <= 0) {
+            throw new DatosInvalidosException("La duración debe ser mayor que cero.");
+        }
+        if (!(servicio instanceof Guarderia)) {
+            throw new DatosInvalidosException(
+                "La duración personalizada solo está permitida para servicios de guardería."
+            );
+        }
+        this.servicio = servicio;
+        this.precioCongelado = servicio.calcularImporte();
+        this.duracionMinutos = duracionMinutos;
+    }
+
     public void registrarObservaciones(String observaciones) {
         this.observaciones = Validaciones.textoOpcional(observaciones);
     }

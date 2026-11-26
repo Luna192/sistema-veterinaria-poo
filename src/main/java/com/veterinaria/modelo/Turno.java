@@ -133,6 +133,43 @@ public class Turno implements Facturable {
                 && otroTurno.fechaHoraInicio.isBefore(calcularFechaHoraFin());
     }
 
+    public boolean seSolapaVeterinarioCon(Turno otroTurno) {
+    if (otroTurno == null
+            || !ocupaHorario()
+            || !otroTurno.ocupaHorario()
+            || veterinario == null
+            || veterinario != otroTurno.veterinario) {
+        return false;
+    }
+
+    for (DetalleTurno propio : detalles) {
+        if (!propio.getServicio().requiereVeterinario()) {
+            continue;
+        }
+
+        LocalDateTime inicioPropio = calcularInicioDetalle(propio);
+        LocalDateTime finPropio = calcularFinDetalle(propio);
+
+        for (DetalleTurno ajeno : otroTurno.detalles) {
+            if (!ajeno.getServicio().requiereVeterinario()) {
+                continue;
+            }
+
+            LocalDateTime inicioAjeno =
+                otroTurno.calcularInicioDetalle(ajeno);
+            LocalDateTime finAjeno =
+                otroTurno.calcularFinDetalle(ajeno);
+
+            if (inicioPropio.isBefore(finAjeno)
+                    && inicioAjeno.isBefore(finPropio)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
     public boolean ocupaHorario() {
         return estado != EstadoTurno.CANCELADO;
     }
