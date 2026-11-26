@@ -11,807 +11,807 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class RegistroTurnosTest {
 
-    @Test
-    void rechazaConflictosSinAgregarLosTurnos() {
-        RegistroTurnos registro = new RegistroTurnos();
+        @Test
+        void rechazaConflictosSinAgregarLosTurnos() {
+                RegistroTurnos registro = new RegistroTurnos();
 
-        Cliente ana = new Cliente(
-                "Ana", "Pérez", "123", "123456", "");
+                Cliente ana = new Cliente(
+                                "Ana", "Pérez", "123", "123456", "");
 
-        Mascota toby = ana.registrarMascota(
-                "F-1", "Toby", Especie.PERRO, "",
-                LocalDate.now().minusYears(3));
+                Mascota toby = ana.registrarMascota(
+                                "F-1", "Toby", Especie.PERRO, "",
+                                LocalDate.now().minusYears(3));
 
-        Mascota luna = ana.registrarMascota(
-                "F-2", "Luna", Especie.GATO, "",
-                LocalDate.now().minusYears(2));
+                Mascota luna = ana.registrarMascota(
+                                "F-2", "Luna", Especie.GATO, "",
+                                LocalDate.now().minusYears(2));
 
-        Veterinario laura = new Veterinario(
-                "MAT-1", "Laura", "Sosa");
+                Veterinario laura = new Veterinario(
+                                "MAT-1", "Laura", "Sosa");
 
-        Veterinario pedro = new Veterinario(
-                "MAT-2", "Pedro", "López");
+                Veterinario pedro = new Veterinario(
+                                "MAT-2", "Pedro", "López");
 
-        ConsultaMedica consulta = new ConsultaMedica(
-                "Consulta", new BigDecimal("20000"), 30);
+                ConsultaMedica consulta = new ConsultaMedica(
+                                "Consulta", new BigDecimal("20000"), 30);
 
-        LocalDateTime inicio = LocalDate.now().plusDays(2).atTime(10, 0);
+                LocalDateTime inicio = LocalDate.now().plusDays(2).atTime(10, 0);
 
-        Turno primero = new Turno(
-                toby, laura,
-                List.of(new DetalleTurno(consulta)),
-                inicio);
+                Turno primero = new Turno(
+                                toby, laura,
+                                List.of(new DetalleTurno(consulta)),
+                                inicio);
 
-        registro.registrar(primero);
+                registro.registrar(primero);
 
-        Turno mascotaOcupada = new Turno(
-                toby, pedro,
-                List.of(new DetalleTurno(consulta)),
-                inicio.plusMinutes(15));
+                Turno mascotaOcupada = new Turno(
+                                toby, pedro,
+                                List.of(new DetalleTurno(consulta)),
+                                inicio.plusMinutes(15));
 
-        assertThrows(DatosInvalidosException.class,
-                () -> registro.registrar(mascotaOcupada));
+                assertThrows(DatosInvalidosException.class,
+                                () -> registro.registrar(mascotaOcupada));
 
-        Turno veterinarioOcupado = new Turno(
-                luna, laura,
-                List.of(new DetalleTurno(consulta)),
-                inicio.plusMinutes(15));
+                Turno veterinarioOcupado = new Turno(
+                                luna, laura,
+                                List.of(new DetalleTurno(consulta)),
+                                inicio.plusMinutes(15));
 
-        assertThrows(DatosInvalidosException.class,
-                () -> registro.registrar(veterinarioOcupado));
+                assertThrows(DatosInvalidosException.class,
+                                () -> registro.registrar(veterinarioOcupado));
 
-        assertEquals(1, registro.getTurnos().size());
-        assertSame(primero, registro.getTurnos().get(0));
+                assertEquals(1, registro.getTurnos().size());
+                assertSame(primero, registro.getTurnos().get(0));
 
-        Turno contiguo = new Turno(
-                luna, laura,
-                List.of(new DetalleTurno(consulta)),
-                inicio.plusMinutes(30));
+                Turno contiguo = new Turno(
+                                luna, laura,
+                                List.of(new DetalleTurno(consulta)),
+                                inicio.plusMinutes(30));
 
-        assertDoesNotThrow(() -> registro.registrar(contiguo));
-        assertEquals(2, registro.getTurnos().size());
-    }
+                assertDoesNotThrow(() -> registro.registrar(contiguo));
+                assertEquals(2, registro.getTurnos().size());
+        }
 
-    @Test
-    void permiteReservarElHorarioDeUnTurnoCancelado() {
-        RegistroTurnos registro = new RegistroTurnos();
+        @Test
+        void permiteReservarElHorarioDeUnTurnoCancelado() {
+                RegistroTurnos registro = new RegistroTurnos();
 
-        Cliente ana = new Cliente(
-                "Ana", "Pérez", "123", "123456", "");
+                Cliente ana = new Cliente(
+                                "Ana", "Pérez", "123", "123456", "");
 
-        Mascota toby = ana.registrarMascota(
-                "F-1", "Toby", Especie.PERRO, "",
-                LocalDate.now().minusYears(3));
+                Mascota toby = ana.registrarMascota(
+                                "F-1", "Toby", Especie.PERRO, "",
+                                LocalDate.now().minusYears(3));
 
-        Veterinario laura = new Veterinario(
-                "MAT-1", "Laura", "Sosa");
+                Veterinario laura = new Veterinario(
+                                "MAT-1", "Laura", "Sosa");
 
-        ConsultaMedica consulta = new ConsultaMedica(
-                "Consulta", new BigDecimal("20000"), 30);
+                ConsultaMedica consulta = new ConsultaMedica(
+                                "Consulta", new BigDecimal("20000"), 30);
 
-        LocalDateTime ahora = LocalDateTime.now();
-        LocalDateTime inicio = ahora.plusDays(3);
+                LocalDateTime ahora = LocalDateTime.now();
+                LocalDateTime inicio = ahora.plusDays(3);
 
-        Turno original = new Turno(
-                toby, laura,
-                List.of(new DetalleTurno(consulta)),
-                inicio);
+                Turno original = new Turno(
+                                toby, laura,
+                                List.of(new DetalleTurno(consulta)),
+                                inicio);
 
-        registro.registrar(original);
-        original.cancelar(ahora);
+                registro.registrar(original);
+                original.cancelar(ahora);
 
-        Turno reemplazo = new Turno(
-                toby, laura,
-                List.of(new DetalleTurno(consulta)),
-                inicio);
+                Turno reemplazo = new Turno(
+                                toby, laura,
+                                List.of(new DetalleTurno(consulta)),
+                                inicio);
 
-        assertDoesNotThrow(() -> registro.registrar(reemplazo));
+                assertDoesNotThrow(() -> registro.registrar(reemplazo));
 
-        assertEquals(EstadoTurno.CANCELADO, original.getEstado());
-        assertEquals(2, registro.getTurnos().size());
-        assertSame(original, registro.getTurnos().get(0));
-        assertSame(reemplazo, registro.getTurnos().get(1));
-    }
+                assertEquals(EstadoTurno.CANCELADO, original.getEstado());
+                assertEquals(2, registro.getTurnos().size());
+                assertSame(original, registro.getTurnos().get(0));
+                assertSame(reemplazo, registro.getTurnos().get(1));
+        }
 
-    @Test
-    void historialIncluyeSoloAtendidosYLosOrdenaPorFecha() {
-        RegistroTurnos registro = new RegistroTurnos();
+        @Test
+        void historialIncluyeSoloAtendidosYLosOrdenaPorFecha() {
+                RegistroTurnos registro = new RegistroTurnos();
 
-        Cliente ana = new Cliente(
-                "Ana", "Pérez", "123", "123456", "");
+                Cliente ana = new Cliente(
+                                "Ana", "Pérez", "123", "123456", "");
 
-        Mascota toby = ana.registrarMascota(
-                "F-1", "Toby", Especie.PERRO, "",
-                LocalDate.now().minusYears(3));
+                Mascota toby = ana.registrarMascota(
+                                "F-1", "Toby", Especie.PERRO, "",
+                                LocalDate.now().minusYears(3));
 
-        Mascota luna = ana.registrarMascota(
-                "F-2", "Luna", Especie.GATO, "",
-                LocalDate.now().minusYears(2));
+                Mascota luna = ana.registrarMascota(
+                                "F-2", "Luna", Especie.GATO, "",
+                                LocalDate.now().minusYears(2));
 
-        Peluqueria servicio = new Peluqueria(
-                "Peluquería", new BigDecimal("10000"), 30);
+                Peluqueria servicio = new Peluqueria(
+                                "Peluquería", new BigDecimal("10000"), 30);
 
-        LocalDateTime inicio = LocalDate.now().plusDays(3).atTime(10, 0);
+                LocalDateTime inicio = LocalDate.now().plusDays(3).atTime(10, 0);
 
-        Turno primero = new Turno(
-                toby, null, List.of(new DetalleTurno(servicio)), inicio);
+                Turno primero = new Turno(
+                                toby, null, List.of(new DetalleTurno(servicio)), inicio);
 
-        Turno segundo = new Turno(
-                toby, null, List.of(new DetalleTurno(servicio)),
-                inicio.plusDays(1));
+                Turno segundo = new Turno(
+                                toby, null, List.of(new DetalleTurno(servicio)),
+                                inicio.plusDays(1));
 
-        Turno pendiente = new Turno(
-                toby, null, List.of(new DetalleTurno(servicio)),
-                inicio.plusDays(2));
+                Turno pendiente = new Turno(
+                                toby, null, List.of(new DetalleTurno(servicio)),
+                                inicio.plusDays(2));
 
-        Turno confirmado = new Turno(
-                toby, null, List.of(new DetalleTurno(servicio)),
-                inicio.plusDays(3));
+                Turno confirmado = new Turno(
+                                toby, null, List.of(new DetalleTurno(servicio)),
+                                inicio.plusDays(3));
 
-        Turno cancelado = new Turno(
-                toby, null, List.of(new DetalleTurno(servicio)),
-                inicio.plusDays(4));
+                Turno cancelado = new Turno(
+                                toby, null, List.of(new DetalleTurno(servicio)),
+                                inicio.plusDays(4));
 
-        Turno deOtraMascota = new Turno(
-                luna, null, List.of(new DetalleTurno(servicio)),
-                inicio.plusDays(5));
+                Turno deOtraMascota = new Turno(
+                                luna, null, List.of(new DetalleTurno(servicio)),
+                                inicio.plusDays(5));
 
-        // Los registramos desordenados para comprobar el orden del historial.
-        registro.registrar(segundo);
-        registro.registrar(pendiente);
-        registro.registrar(primero);
-        registro.registrar(confirmado);
-        registro.registrar(cancelado);
-        registro.registrar(deOtraMascota);
+                // Los registramos desordenados para comprobar el orden del historial.
+                registro.registrar(segundo);
+                registro.registrar(pendiente);
+                registro.registrar(primero);
+                registro.registrar(confirmado);
+                registro.registrar(cancelado);
+                registro.registrar(deOtraMascota);
 
-        primero.confirmar();
-        primero.marcarAtendido();
+                primero.confirmar();
+                primero.marcarAtendido();
 
-        segundo.confirmar();
-        segundo.marcarAtendido();
+                segundo.confirmar();
+                segundo.marcarAtendido();
 
-        confirmado.confirmar();
-        cancelado.cancelar(inicio.minusDays(3));
+                confirmado.confirmar();
+                cancelado.cancelar(inicio.minusDays(3));
 
-        deOtraMascota.confirmar();
-        deOtraMascota.marcarAtendido();
+                deOtraMascota.confirmar();
+                deOtraMascota.marcarAtendido();
 
-        toby.darDeBaja();
+                toby.darDeBaja();
 
-        List<Turno> historial = registro.consultarHistorial(toby);
+                List<Turno> historial = registro.consultarHistorial(toby);
 
-        assertEquals(2, historial.size());
-        assertSame(primero, historial.get(0));
-        assertSame(segundo, historial.get(1));
-    }
+                assertEquals(2, historial.size());
+                assertSame(primero, historial.get(0));
+                assertSame(segundo, historial.get(1));
+        }
 
-    @Test
-    void rechazaTurnosCuandoGuarderiaAlcanzaCupoMaximo() {
+        @Test
+        void rechazaTurnosCuandoGuarderiaAlcanzaCupoMaximo() {
+                RegistroTurnos registro = new RegistroTurnos();
 
-        RegistroTurnos registro = new RegistroTurnos();
+                Cliente ana = new Cliente(
+                                "Ana", "Pérez", "123", "123456", "");
 
-        Cliente ana = new Cliente(
-                "Ana", "Perez", "123", "123456", "");
+                Guarderia guarderia = new Guarderia(
+                                "Guardería", new BigDecimal("15000"), 120, 10);
 
-        Mascota toby = ana.registrarMascota(
-                "F-1", "Toby", Especie.PERRO, "",
-                LocalDate.now().minusYears(3));
+                LocalDateTime inicio = LocalDate.now().plusDays(3).atTime(10, 0);
 
-        Mascota luna = ana.registrarMascota(
-                "F-2", "Luna", Especie.PERRO, "",
-                LocalDate.now().minusYears(2));
+                for (int i = 1; i <= 10; i++) {
+                        Mascota mascota = ana.registrarMascota(
+                                        "F-" + i, "Mascota " + i, Especie.PERRO, "",
+                                        LocalDate.now().minusYears(2));
 
-        Mascota max = ana.registrarMascota(
-                "F-3", "Max", Especie.PERRO, "",
-                LocalDate.now().minusYears(4));
+                        Turno turno = new Turno(
+                                        mascota, null,
+                                        List.of(new DetalleTurno(guarderia)),
+                                        inicio);
 
-        Guarderia guarderia = new Guarderia(
-                "Guarderia", new BigDecimal("15000"), 120, 2);
+                        registro.registrar(turno);
 
-        LocalDate fecha = LocalDate.now().plusDays(3);
-        LocalDateTime inicio = fecha.atTime(10, 0);
+                        assertEquals(
+                                        i,
+                                        registro.calcularOcupacionMaxima(
+                                                        guarderia, inicio, inicio.plusHours(2)));
+                }
 
-        Turno primero = new Turno(
-                toby, null,
-                List.of(new DetalleTurno(guarderia)),
-                inicio);
+                Mascota adicional = ana.registrarMascota(
+                                "F-11", "Adicional", Especie.GATO, "",
+                                LocalDate.now().minusYears(2));
 
-        Turno segundo = new Turno(
-                luna, null,
-                List.of(new DetalleTurno(guarderia)),
-                inicio);
+                Turno rechazado = new Turno(
+                                adicional, null,
+                                List.of(new DetalleTurno(guarderia)),
+                                inicio);
 
-        Turno tercero = new Turno(
-                max, null,
-                List.of(new DetalleTurno(guarderia)),
-                inicio);
+                assertThrows(DatosInvalidosException.class,
+                                () -> registro.registrar(rechazado));
 
-        assertEquals(0, registro.calcularOcupacionMaxima(
-                guarderia,
-                fecha.atStartOfDay(),
-                fecha.plusDays(1).atStartOfDay()));
+                assertEquals(10, registro.getTurnos().size());
+                assertFalse(registro.getTurnos().contains(rechazado));
+        }
 
-        assertDoesNotThrow(() -> registro.registrar(primero));
+        @Test
+        void liberaCupoGuarderiaAlCancelarTurno() {
+                RegistroTurnos registro = new RegistroTurnos();
 
-        assertEquals(1, registro.calcularOcupacionMaxima(
-                guarderia,
-                fecha.atStartOfDay(),
-                fecha.plusDays(1).atStartOfDay()));
+                Cliente ana = new Cliente(
+                                "Ana", "Pérez", "123", "123456", "");
 
-        assertDoesNotThrow(() -> registro.registrar(segundo));
+                Guarderia guarderia = new Guarderia(
+                                "Guardería", new BigDecimal("15000"), 120, 10);
 
-        assertEquals(2, registro.calcularOcupacionMaxima(
-                guarderia,
-                fecha.atStartOfDay(),
-                fecha.plusDays(1).atStartOfDay()));
+                LocalDateTime ahora = LocalDateTime.now();
+                LocalDateTime inicio = ahora.toLocalDate().plusDays(3).atTime(10, 0);
 
-        assertThrows(DatosInvalidosException.class,
-                () -> registro.registrar(tercero));
+                Mascota toby = ana.registrarMascota(
+                                "F-1", "Toby", Especie.PERRO, "",
+                                LocalDate.now().minusYears(3));
 
-        assertEquals(2, registro.getTurnos().size());
+                Turno original = new Turno(
+                                toby, null,
+                                List.of(new DetalleTurno(guarderia)),
+                                inicio);
 
-        assertFalse(registro.getTurnos().contains(tercero));
-    }
+                registro.registrar(original);
+                original.confirmar();
 
-    @Test
-    void liberaCupoGuarderiaAlCancelarTurno() {
+                for (int i = 2; i <= 10; i++) {
+                        Mascota mascota = ana.registrarMascota(
+                                        "F-" + i, "Mascota " + i, Especie.PERRO, "",
+                                        LocalDate.now().minusYears(2));
 
-        RegistroTurnos registro = new RegistroTurnos();
+                        registro.registrar(new Turno(
+                                        mascota, null,
+                                        List.of(new DetalleTurno(guarderia)),
+                                        inicio));
+                }
 
-        Cliente ana = new Cliente(
-                "Ana", "Perez", "123", "123456", "");
+                Mascota adicional = ana.registrarMascota(
+                                "F-11", "Adicional", Especie.GATO, "",
+                                LocalDate.now().minusYears(2));
 
-        Mascota toby = ana.registrarMascota(
-                "F-1", "Toby", Especie.PERRO, "",
-                LocalDate.now().minusYears(3));
+                Turno reemplazo = new Turno(
+                                adicional, null,
+                                List.of(new DetalleTurno(guarderia)),
+                                inicio);
 
-        Mascota luna = ana.registrarMascota(
-                "F-2", "Luna", Especie.PERRO, "",
-                LocalDate.now().minusYears(2));
+                assertThrows(DatosInvalidosException.class,
+                                () -> registro.registrar(reemplazo));
 
-        Guarderia guarderia = new Guarderia(
-                "Guarderia", new BigDecimal("15000"), 120, 1);
+                original.cancelar(ahora);
 
-        LocalDateTime ahora = LocalDateTime.now();
-        LocalDate fecha = ahora.toLocalDate().plusDays(3);
-        LocalDateTime inicio = fecha.atTime(10, 0);
+                assertEquals(
+                                9,
+                                registro.calcularOcupacionMaxima(
+                                                guarderia, inicio, inicio.plusHours(2)));
 
-        Turno original = new Turno(
-                toby, null,
-                List.of(new DetalleTurno(guarderia)),
-                inicio);
+                assertDoesNotThrow(() -> registro.registrar(reemplazo));
 
-        registro.registrar(original);
-        original.confirmar();
+                assertEquals(
+                                10,
+                                registro.calcularOcupacionMaxima(
+                                                guarderia, inicio, inicio.plusHours(2)));
 
-        assertEquals(1, registro.calcularOcupacionMaxima(
-                guarderia,
-                fecha.atStartOfDay(),
-                fecha.plusDays(1).atStartOfDay()));
+                assertEquals(EstadoTurno.CANCELADO, original.getEstado());
+                assertEquals(11, registro.getTurnos().size());
+        }
 
-        original.cancelar(ahora);
+        @Test
+        void permiteReservasDeGuarderiaEnFechasDiferentes() {
 
-        assertEquals(EstadoTurno.CANCELADO, original.getEstado());
+                RegistroTurnos registro = new RegistroTurnos();
 
-        assertEquals(0, registro.calcularOcupacionMaxima(
-                guarderia,
-                fecha.atStartOfDay(),
-                fecha.plusDays(1).atStartOfDay()));
+                Cliente ana = new Cliente(
+                                "Ana", "Perez", "123", "123456", "");
 
-        Turno reemplazo = new Turno(
-                luna, null,
-                List.of(new DetalleTurno(guarderia)),
-                inicio);
+                Mascota toby = ana.registrarMascota(
+                                "F-1", "Toby", Especie.PERRO, "",
+                                LocalDate.now().minusYears(3));
 
-        assertDoesNotThrow(() -> registro.registrar(reemplazo));
+                Mascota luna = ana.registrarMascota(
+                                "F-2", "Luna", Especie.PERRO, "",
+                                LocalDate.now().minusYears(2));
 
-        assertEquals(1, registro.calcularOcupacionMaxima(
-                guarderia,
-                fecha.atStartOfDay(),
-                fecha.plusDays(1).atStartOfDay()));
+                Guarderia guarderia = new Guarderia(
+                                "Guarderia", new BigDecimal("15000"), 120, 10);
 
-        assertEquals(2, registro.getTurnos().size());
+                LocalDate fecha = LocalDate.now().plusDays(3);
+                LocalDateTime inicio = fecha.atTime(10, 0);
 
-        assertSame(original, registro.getTurnos().get(0));
-        assertSame(reemplazo, registro.getTurnos().get(1));
-    }
+                Turno primero = new Turno(
+                                toby, null,
+                                List.of(new DetalleTurno(guarderia)),
+                                inicio);
 
-    @Test
-    void permiteReservasDeGuarderiaEnFechasDiferentes() {
+                Turno segundo = new Turno(
+                                luna, null,
+                                List.of(new DetalleTurno(guarderia)),
+                                inicio.plusDays(1));
 
-        RegistroTurnos registro = new RegistroTurnos();
+                registro.registrar(primero);
 
-        Cliente ana = new Cliente(
-                "Ana", "Perez", "123", "123456", "");
+                assertEquals(1, registro.calcularOcupacionMaxima(
+                                guarderia,
+                                fecha.atStartOfDay(),
+                                fecha.plusDays(1).atStartOfDay()));
 
-        Mascota toby = ana.registrarMascota(
-                "F-1", "Toby", Especie.PERRO, "",
-                LocalDate.now().minusYears(3));
+                assertEquals(0, registro.calcularOcupacionMaxima(
+                                guarderia,
+                                fecha.plusDays(1).atStartOfDay(),
+                                fecha.plusDays(2).atStartOfDay()));
 
-        Mascota luna = ana.registrarMascota(
-                "F-2", "Luna", Especie.PERRO, "",
-                LocalDate.now().minusYears(2));
+                assertDoesNotThrow(() -> registro.registrar(segundo));
 
-        Guarderia guarderia = new Guarderia(
-                "Guarderia", new BigDecimal("15000"), 120, 1);
+                assertEquals(1, registro.calcularOcupacionMaxima(
+                                guarderia,
+                                fecha.atStartOfDay(),
+                                fecha.plusDays(1).atStartOfDay()));
 
-        LocalDate fecha = LocalDate.now().plusDays(3);
-        LocalDateTime inicio = fecha.atTime(10, 0);
+                assertEquals(1, registro.calcularOcupacionMaxima(
+                                guarderia,
+                                fecha.plusDays(1).atStartOfDay(),
+                                fecha.plusDays(2).atStartOfDay()));
 
-        Turno primero = new Turno(
-                toby, null,
-                List.of(new DetalleTurno(guarderia)),
-                inicio);
+                assertEquals(2, registro.getTurnos().size());
+        }
 
-        Turno segundo = new Turno(
-                luna, null,
-                List.of(new DetalleTurno(guarderia)),
-                inicio.plusDays(1));
+        @Test
+        void otrosServiciosNoOcupanCuposDeGuarderia() {
 
-        registro.registrar(primero);
+                RegistroTurnos registro = new RegistroTurnos();
 
-        assertEquals(1, registro.calcularOcupacionMaxima(
-                guarderia,
-                fecha.atStartOfDay(),
-                fecha.plusDays(1).atStartOfDay()));
+                Cliente ana = new Cliente(
+                                "Ana", "Perez", "123", "123456", "");
 
-        assertEquals(0, registro.calcularOcupacionMaxima(
-                guarderia,
-                fecha.plusDays(1).atStartOfDay(),
-                fecha.plusDays(2).atStartOfDay()));
+                Mascota toby = ana.registrarMascota(
+                                "F-1", "Toby", Especie.PERRO, "",
+                                LocalDate.now().minusYears(3));
 
-        assertDoesNotThrow(() -> registro.registrar(segundo));
+                Mascota luna = ana.registrarMascota(
+                                "F-2", "Luna", Especie.PERRO, "",
+                                LocalDate.now().minusYears(2));
 
-        assertEquals(1, registro.calcularOcupacionMaxima(
-                guarderia,
-                fecha.atStartOfDay(),
-                fecha.plusDays(1).atStartOfDay()));
+                Mascota max = ana.registrarMascota(
+                                "F-3", "Max", Especie.PERRO, "",
+                                LocalDate.now().minusYears(4));
 
-        assertEquals(1, registro.calcularOcupacionMaxima(
-                guarderia,
-                fecha.plusDays(1).atStartOfDay(),
-                fecha.plusDays(2).atStartOfDay()));
+                Guarderia guarderia = new Guarderia(
+                                "Guarderia", new BigDecimal("15000"), 120, 10);
 
-        assertEquals(2, registro.getTurnos().size());
-    }
+                Peluqueria peluqueria = new Peluqueria(
+                                "Peluqueria", new BigDecimal("10000"), 30);
 
-    @Test
-    void otrosServiciosNoOcupanCuposDeGuarderia() {
+                ConsultaMedica consulta = new ConsultaMedica(
+                                "Consulta", new BigDecimal("20000"), 30);
 
-        RegistroTurnos registro = new RegistroTurnos();
+                Veterinario laura = new Veterinario(
+                                "MAT-1", "Laura", "Sosa");
 
-        Cliente ana = new Cliente(
-                "Ana", "Perez", "123", "123456", "");
+                LocalDate fecha = LocalDate.now().plusDays(3);
+                LocalDateTime inicio = fecha.atTime(10, 0);
 
-        Mascota toby = ana.registrarMascota(
-                "F-1", "Toby", Especie.PERRO, "",
-                LocalDate.now().minusYears(3));
+                Turno turnoPeluqueria = new Turno(
+                                toby, null,
+                                List.of(new DetalleTurno(peluqueria)),
+                                inicio);
 
-        Mascota luna = ana.registrarMascota(
-                "F-2", "Luna", Especie.PERRO, "",
-                LocalDate.now().minusYears(2));
+                Turno turnoConsulta = new Turno(
+                                luna, laura,
+                                List.of(new DetalleTurno(consulta)),
+                                inicio);
 
-        Mascota max = ana.registrarMascota(
-                "F-3", "Max", Especie.PERRO, "",
-                LocalDate.now().minusYears(4));
+                Turno turnoGuarderia = new Turno(
+                                max, null,
+                                List.of(new DetalleTurno(guarderia)),
+                                inicio);
 
-        Guarderia guarderia = new Guarderia(
-                "Guarderia", new BigDecimal("15000"), 120, 1);
+                registro.registrar(turnoPeluqueria);
+                registro.registrar(turnoConsulta);
 
-        Peluqueria peluqueria = new Peluqueria(
-                "Peluqueria", new BigDecimal("10000"), 30);
+                assertEquals(0, registro.calcularOcupacionMaxima(
+                                guarderia,
+                                fecha.atStartOfDay(),
+                                fecha.plusDays(1).atStartOfDay()));
 
-        ConsultaMedica consulta = new ConsultaMedica(
-                "Consulta", new BigDecimal("20000"), 30);
+                assertDoesNotThrow(
+                                () -> registro.registrar(turnoGuarderia));
 
-        Veterinario laura = new Veterinario(
-                "MAT-1", "Laura", "Sosa");
+                assertEquals(1, registro.calcularOcupacionMaxima(
+                                guarderia, fecha.atStartOfDay(), fecha.plusDays(1).atStartOfDay()));
 
-        LocalDate fecha = LocalDate.now().plusDays(3);
-        LocalDateTime inicio = fecha.atTime(10, 0);
+                assertEquals(3, registro.getTurnos().size());
+        }
 
-        Turno turnoPeluqueria = new Turno(
-                toby, null,
-                List.of(new DetalleTurno(peluqueria)),
-                inicio);
+        @Test
+        void turnoConMultiplesServiciosOcupaUnCupoDeGuarderia() {
 
-        Turno turnoConsulta = new Turno(
-                luna, laura,
-                List.of(new DetalleTurno(consulta)),
-                inicio);
+                RegistroTurnos registro = new RegistroTurnos();
 
-        Turno turnoGuarderia = new Turno(
-                max, null,
-                List.of(new DetalleTurno(guarderia)),
-                inicio);
+                Cliente ana = new Cliente(
+                                "Ana", "Perez", "123", "123456", "");
 
-        registro.registrar(turnoPeluqueria);
-        registro.registrar(turnoConsulta);
+                Mascota toby = ana.registrarMascota(
+                                "F-1", "Toby", Especie.PERRO, "",
+                                LocalDate.now().minusYears(3));
 
-        assertEquals(0, registro.calcularOcupacionMaxima(
-                guarderia,
-                fecha.atStartOfDay(),
-                fecha.plusDays(1).atStartOfDay()));
+                Mascota luna = ana.registrarMascota(
+                                "F-2", "Luna", Especie.PERRO, "",
+                                LocalDate.now().minusYears(2));
 
-        assertDoesNotThrow(
-                () -> registro.registrar(turnoGuarderia));
+                Veterinario laura = new Veterinario(
+                                "MAT-1", "Laura", "Sosa");
 
-        assertEquals(1, registro.calcularOcupacionMaxima(
-                guarderia, fecha.atStartOfDay(), fecha.plusDays(1).atStartOfDay()));
+                ConsultaMedica consulta = new ConsultaMedica(
+                                "Consulta", new BigDecimal("20000"), 30);
 
-        assertEquals(3, registro.getTurnos().size());
-    }
+                Guarderia guarderia = new Guarderia(
+                                "Guarderia", new BigDecimal("15000"), 120, 10);
 
-    @Test
-    void turnoConMultiplesServiciosOcupaUnCupoDeGuarderia() {
+                LocalDate fecha = LocalDate.now().plusDays(3);
+                LocalDateTime inicio = fecha.atTime(9, 0);
 
-        RegistroTurnos registro = new RegistroTurnos();
+                DetalleTurno detalleConsulta = new DetalleTurno(consulta);
+                DetalleTurno detalleGuarderia = new DetalleTurno(guarderia);
 
-        Cliente ana = new Cliente(
-                "Ana", "Perez", "123", "123456", "");
+                Turno combinado = new Turno(
+                                toby, laura,
+                                List.of(detalleConsulta, detalleGuarderia),
+                                inicio);
 
-        Mascota toby = ana.registrarMascota(
-                "F-1", "Toby", Especie.PERRO, "",
-                LocalDate.now().minusYears(3));
+                assertDoesNotThrow(() -> registro.registrar(combinado));
 
-        Mascota luna = ana.registrarMascota(
-                "F-2", "Luna", Especie.PERRO, "",
-                LocalDate.now().minusYears(2));
+                assertEquals(1, registro.calcularOcupacionMaxima(
+                                guarderia,
+                                fecha.atStartOfDay(),
+                                fecha.plusDays(1).atStartOfDay()));
 
-        Veterinario laura = new Veterinario(
-                "MAT-1", "Laura", "Sosa");
+                assertEquals(inicio.plusMinutes(30),
+                                combinado.calcularInicioDetalle(detalleGuarderia));
 
-        ConsultaMedica consulta = new ConsultaMedica(
-                "Consulta", new BigDecimal("20000"), 30);
+                Turno segundo = new Turno(
+                                luna, null,
+                                List.of(new DetalleTurno(guarderia)),
+                                inicio.plusMinutes(30));
 
-        Guarderia guarderia = new Guarderia(
-                "Guarderia", new BigDecimal("15000"), 120, 1);
+                for (int i = 3; i <= 11; i++) {
+                        Mascota mascota = ana.registrarMascota(
+                                        "F-" + i, "Mascota " + i, Especie.PERRO, "",
+                                        fecha.minusYears(3));
 
-        LocalDate fecha = LocalDate.now().plusDays(3);
-        LocalDateTime inicio = fecha.atTime(9, 0);
+                        registro.registrar(new Turno(
+                                        mascota, null,
+                                        List.of(new DetalleTurno(guarderia)),
+                                        inicio.plusMinutes(30)));
+                }
 
-        DetalleTurno detalleConsulta = new DetalleTurno(consulta);
-        DetalleTurno detalleGuarderia = new DetalleTurno(guarderia);
+                assertEquals(
+                                10,
+                                registro.calcularOcupacionMaxima(
+                                                guarderia,
+                                                inicio.plusMinutes(30),
+                                                inicio.plusMinutes(150)));
 
-        Turno combinado = new Turno(
-                toby, laura,
-                List.of(detalleConsulta, detalleGuarderia),
-                inicio);
+                assertThrows(DatosInvalidosException.class,
+                                () -> registro.registrar(segundo));
 
-        assertDoesNotThrow(() -> registro.registrar(combinado));
+                assertEquals(10, registro.getTurnos().size());
+        }
 
-        assertEquals(1, registro.calcularOcupacionMaxima(
-                guarderia,
-                fecha.atStartOfDay(),
-                fecha.plusDays(1).atStartOfDay()));
+        @Test
+        void permiteReutilizarCuposGuarderiaEnElMismoDia() {
+                RegistroTurnos registro = new RegistroTurnos();
 
-        assertEquals(inicio.plusMinutes(30),
-                combinado.calcularInicioDetalle(detalleGuarderia));
+                Cliente ana = new Cliente(
+                                "Ana", "Pérez", "123", "123456", "");
 
-        Turno segundo = new Turno(
-                luna, null,
-                List.of(new DetalleTurno(guarderia)),
-                inicio.plusMinutes(30));
+                Guarderia guarderia = new Guarderia(
+                                "Guardería", new BigDecimal("15000"), 120, 10);
 
-        assertThrows(DatosInvalidosException.class,
-                () -> registro.registrar(segundo));
+                LocalDate fecha = LocalDate.now().plusDays(3);
 
-        assertEquals(1, registro.getTurnos().size());
-    }
+                for (int i = 1; i <= 10; i++) {
+                        Mascota deManana = ana.registrarMascota(
+                                        "M-" + i, "Mañana " + i, Especie.PERRO, "",
+                                        fecha.minusYears(3));
 
-    @Test
-    void permiteReutilizarCuposGuarderiaEnElMismoDia() {
+                        Mascota deTarde = ana.registrarMascota(
+                                        "T-" + i, "Tarde " + i, Especie.GATO, "",
+                                        fecha.minusYears(3));
 
-        RegistroTurnos registro = new RegistroTurnos();
+                        registro.registrar(new Turno(
+                                        deManana, null,
+                                        List.of(new DetalleTurno(guarderia, 120)),
+                                        fecha.atTime(9, 0)));
 
-        Cliente ana = new Cliente(
-                "Ana", "Perez", "123", "123456", "");
+                        registro.registrar(new Turno(
+                                        deTarde, null,
+                                        List.of(new DetalleTurno(guarderia, 180)),
+                                        fecha.atTime(11, 0)));
+                }
 
-        Mascota toby = ana.registrarMascota(
-                "F-1", "Toby", Especie.PERRO, "",
-                LocalDate.now().minusYears(3));
+                Mascota adicional = ana.registrarMascota(
+                                "F-extra", "Adicional", Especie.PERRO, "",
+                                fecha.minusYears(3));
 
-        Mascota luna = ana.registrarMascota(
-                "F-2", "Luna", Especie.PERRO, "",
-                LocalDate.now().minusYears(2));
+                Turno superpuesto = new Turno(
+                                adicional, null,
+                                List.of(new DetalleTurno(guarderia, 120)),
+                                fecha.atTime(10, 0));
 
-        Mascota max = ana.registrarMascota(
-                "F-3", "Max", Especie.PERRO, "",
-                LocalDate.now().minusYears(4));
+                assertThrows(DatosInvalidosException.class,
+                                () -> registro.registrar(superpuesto));
 
-        Guarderia guarderia = new Guarderia(
-                "Guarderia", new BigDecimal("15000"), 120, 1);
+                assertEquals(
+                                10,
+                                registro.calcularOcupacionMaxima(
+                                                guarderia, fecha.atTime(9, 0), fecha.atTime(14, 0)));
 
-        LocalDate fecha = LocalDate.now().plusDays(3);
+                assertEquals(
+                                0,
+                                registro.calcularOcupacionMaxima(
+                                                guarderia, fecha.atTime(14, 0), fecha.atTime(16, 0)));
 
-        Turno primero = new Turno(
-                toby, null,
-                List.of(new DetalleTurno(guarderia, 120)),
-                fecha.atTime(9, 0));
+                assertEquals(20, registro.getTurnos().size());
+                assertFalse(registro.getTurnos().contains(superpuesto));
+        }
 
-        Turno segundo = new Turno(
-                luna, null,
-                List.of(new DetalleTurno(guarderia, 180)),
-                fecha.atTime(11, 0));
+        @Test
+        void permiteSolapamientosParcialesSinSuperarCapacidad() {
+                RegistroTurnos registro = new RegistroTurnos();
 
-        Turno tercero = new Turno(
-                max, null,
-                List.of(new DetalleTurno(guarderia, 120)),
-                fecha.atTime(10, 0));
+                Cliente ana = new Cliente(
+                                "Ana", "Perez", "123", "123456", "");
 
-        assertDoesNotThrow(() -> registro.registrar(primero));
+                LocalDate fecha = LocalDate.now().plusDays(3);
 
-        assertDoesNotThrow(() -> registro.registrar(segundo));
+                Mascota toby = ana.registrarMascota(
+                                "F-1", "Toby", Especie.PERRO, "",
+                                LocalDate.now().minusYears(3));
 
-        assertThrows(DatosInvalidosException.class,
-                () -> registro.registrar(tercero));
+                Mascota luna = ana.registrarMascota(
+                                "F-2", "Luna", Especie.PERRO, "",
+                                LocalDate.now().minusYears(2));
 
-        assertEquals(1, registro.calcularOcupacionMaxima(
-                guarderia,
-                fecha.atTime(9, 0),
-                fecha.atTime(14, 0)));
+                Mascota max = ana.registrarMascota(
+                                "F-3", "Max", Especie.PERRO, "",
+                                LocalDate.now().minusYears(4));
 
-        assertEquals(0, registro.calcularOcupacionMaxima(
-                guarderia,
-                fecha.atTime(14, 0),
-                fecha.atTime(16, 0)));
+                Guarderia guarderia = new Guarderia(
+                                "Guarderia", new BigDecimal("15000"), 120, 10);
 
-        assertEquals(2, registro.getTurnos().size());
+                Turno primero = new Turno(
+                                toby, null,
+                                List.of(new DetalleTurno(guarderia, 180)),
+                                fecha.atTime(8, 0));
 
-        assertFalse(registro.getTurnos().contains(tercero));
-    }
+                Turno segundo = new Turno(
+                                luna, null,
+                                List.of(new DetalleTurno(guarderia, 180)),
+                                fecha.atTime(11, 0));
 
-    @Test
-    void permiteSolapamientosParcialesSinSuperarCapacidad() {
+                Turno tercero = new Turno(
+                                max, null,
+                                List.of(new DetalleTurno(guarderia, 240)),
+                                fecha.atTime(9, 0));
 
-        RegistroTurnos registro = new RegistroTurnos();
+                for (int i = 4; i <= 11; i++) {
+                        Mascota mascota = ana.registrarMascota(
+                                        "F-" + i, "Mascota " + i, Especie.PERRO, "",
+                                        LocalDate.now().minusYears(3));
 
-        Cliente ana = new Cliente(
-                "Ana", "Perez", "123", "123456", "");
+                        registro.registrar(new Turno(
+                                        mascota, null,
+                                        List.of(new DetalleTurno(guarderia, 360)),
+                                        fecha.atTime(8, 0)));
+                }
 
-        Mascota toby = ana.registrarMascota(
-                "F-1", "Toby", Especie.PERRO, "",
-                LocalDate.now().minusYears(3));
+                registro.registrar(primero);
+                registro.registrar(segundo);
 
-        Mascota luna = ana.registrarMascota(
-                "F-2", "Luna", Especie.PERRO, "",
-                LocalDate.now().minusYears(2));
+                assertEquals(9, registro.calcularOcupacionMaxima(
+                                guarderia, fecha.atTime(9, 0), fecha.atTime(13, 0)));
 
-        Mascota max = ana.registrarMascota(
-                "F-3", "Max", Especie.PERRO, "",
-                LocalDate.now().minusYears(4));
+                assertDoesNotThrow(() -> registro.registrar(tercero));
 
-        Guarderia guarderia = new Guarderia(
-                "Guarderia", new BigDecimal("15000"), 120, 2);
+                assertEquals(10, registro.calcularOcupacionMaxima(
+                                guarderia, fecha.atTime(8, 0), fecha.atTime(14, 0)));
 
-        LocalDate fecha = LocalDate.now().plusDays(3);
+                assertEquals(11, registro.getTurnos().size());
+        }
 
-        Turno primero = new Turno(
-                toby, null,
-                List.of(new DetalleTurno(guarderia, 180)),
-                fecha.atTime(8, 0));
+        @Test
+        void rechazaReservaSiSuperaCapacidadDuranteLaEstadia() {
 
-        Turno segundo = new Turno(
-                luna, null,
-                List.of(new DetalleTurno(guarderia, 180)),
-                fecha.atTime(11, 0));
+                RegistroTurnos registro = new RegistroTurnos();
 
-        Turno tercero = new Turno(
-                max, null,
-                List.of(new DetalleTurno(guarderia, 240)),
-                fecha.atTime(9, 0));
+                Cliente ana = new Cliente(
+                                "Ana", "Perez", "123", "123456", "");
 
-        registro.registrar(primero);
-        registro.registrar(segundo);
+                Mascota toby = ana.registrarMascota(
+                                "F-1", "Toby", Especie.PERRO, "",
+                                LocalDate.now().minusYears(3));
 
-        assertEquals(1, registro.calcularOcupacionMaxima(
-                guarderia,
-                fecha.atTime(9, 0),
-                fecha.atTime(13, 0)));
+                Mascota luna = ana.registrarMascota(
+                                "F-2", "Luna", Especie.PERRO, "",
+                                LocalDate.now().minusYears(2));
 
-        assertDoesNotThrow(() -> registro.registrar(tercero));
+                Mascota max = ana.registrarMascota(
+                                "F-3", "Max", Especie.PERRO, "",
+                                LocalDate.now().minusYears(4));
 
-        assertEquals(2, registro.calcularOcupacionMaxima(
-                guarderia,
-                fecha.atTime(8, 0),
-                fecha.atTime(14, 0)));
+                Guarderia guarderia = new Guarderia(
+                                "Guarderia", new BigDecimal("15000"), 120, 10);
 
-        assertEquals(3, registro.getTurnos().size());
-    }
+                LocalDate fecha = LocalDate.now().plusDays(3);
 
-    @Test
-    void rechazaReservaSiSuperaCapacidadDuranteLaEstadia() {
+                Turno primero = new Turno(
+                                toby, null,
+                                List.of(new DetalleTurno(guarderia, 240)),
+                                fecha.atTime(8, 0));
 
-        RegistroTurnos registro = new RegistroTurnos();
+                Turno segundo = new Turno(
+                                luna, null,
+                                List.of(new DetalleTurno(guarderia, 180)),
+                                fecha.atTime(11, 0));
 
-        Cliente ana = new Cliente(
-                "Ana", "Perez", "123", "123456", "");
+                Turno tercero = new Turno(
+                                max, null,
+                                List.of(new DetalleTurno(guarderia, 240)),
+                                fecha.atTime(9, 0));
 
-        Mascota toby = ana.registrarMascota(
-                "F-1", "Toby", Especie.PERRO, "",
-                LocalDate.now().minusYears(3));
+                for (int i = 4; i <= 11; i++) {
+                        Mascota mascota = ana.registrarMascota(
+                                        "F-" + i, "Mascota " + i, Especie.PERRO, "",
+                                        LocalDate.now().minusYears(3));
 
-        Mascota luna = ana.registrarMascota(
-                "F-2", "Luna", Especie.PERRO, "",
-                LocalDate.now().minusYears(2));
+                        registro.registrar(new Turno(
+                                        mascota, null,
+                                        List.of(new DetalleTurno(guarderia, 360)),
+                                        fecha.atTime(8, 0)));
+                }
 
-        Mascota max = ana.registrarMascota(
-                "F-3", "Max", Especie.PERRO, "",
-                LocalDate.now().minusYears(4));
+                registro.registrar(primero);
+                registro.registrar(segundo);
 
-        Guarderia guarderia = new Guarderia(
-                "Guarderia", new BigDecimal("15000"), 120, 2);
+                assertEquals(9, registro.calcularOcupacionMaxima(
+                                guarderia,
+                                fecha.atTime(9, 0),
+                                fecha.atTime(11, 0)));
 
-        LocalDate fecha = LocalDate.now().plusDays(3);
+                assertEquals(10, registro.calcularOcupacionMaxima(
+                                guarderia,
+                                fecha.atTime(9, 0),
+                                fecha.atTime(13, 0)));
 
-        Turno primero = new Turno(
-                toby, null,
-                List.of(new DetalleTurno(guarderia, 240)),
-                fecha.atTime(8, 0));
+                assertThrows(DatosInvalidosException.class,
+                                () -> registro.registrar(tercero));
 
-        Turno segundo = new Turno(
-                luna, null,
-                List.of(new DetalleTurno(guarderia, 180)),
-                fecha.atTime(11, 0));
+                assertEquals(10, registro.getTurnos().size());
 
-        Turno tercero = new Turno(
-                max, null,
-                List.of(new DetalleTurno(guarderia, 240)),
-                fecha.atTime(9, 0));
+                assertFalse(registro.getTurnos().contains(tercero));
+        }
 
-        registro.registrar(primero);
-        registro.registrar(segundo);
+        @Test
+        void cancelarTurnoLiberaCapacidadSimultanea() {
 
-        assertEquals(1, registro.calcularOcupacionMaxima(
-                guarderia,
-                fecha.atTime(9, 0),
-                fecha.atTime(11, 0)));
+                RegistroTurnos registro = new RegistroTurnos();
 
-        assertEquals(2, registro.calcularOcupacionMaxima(
-                guarderia,
-                fecha.atTime(9, 0),
-                fecha.atTime(13, 0)));
+                Cliente ana = new Cliente(
+                                "Ana", "Perez", "123", "123456", "");
 
-        assertThrows(DatosInvalidosException.class,
-                () -> registro.registrar(tercero));
+                Mascota toby = ana.registrarMascota(
+                                "F-1", "Toby", Especie.PERRO, "",
+                                LocalDate.now().minusYears(3));
 
-        assertEquals(2, registro.getTurnos().size());
+                Mascota luna = ana.registrarMascota(
+                                "F-2", "Luna", Especie.PERRO, "",
+                                LocalDate.now().minusYears(2));
 
-        assertFalse(registro.getTurnos().contains(tercero));
-    }
+                Mascota max = ana.registrarMascota(
+                                "F-3", "Max", Especie.PERRO, "",
+                                LocalDate.now().minusYears(4));
 
-    @Test
-    void controlaCuposEnEstadiasQueAtraviesanMedianoche() {
+                Guarderia guarderia = new Guarderia(
+                                "Guarderia", new BigDecimal("15000"), 120, 10);
 
-        RegistroTurnos registro = new RegistroTurnos();
+                LocalDateTime ahora = LocalDateTime.now();
+                LocalDate fecha = ahora.toLocalDate().plusDays(3);
 
-        Cliente ana = new Cliente(
-                "Ana", "Perez", "123", "123456", "");
+                Turno primero = new Turno(
+                                toby, null,
+                                List.of(new DetalleTurno(guarderia, 240)),
+                                fecha.atTime(8, 0));
 
-        Mascota toby = ana.registrarMascota(
-                "F-1", "Toby", Especie.PERRO, "",
-                LocalDate.now().minusYears(3));
+                Turno segundo = new Turno(
+                                luna, null,
+                                List.of(new DetalleTurno(guarderia, 240)),
+                                fecha.atTime(10, 0));
 
-        Mascota luna = ana.registrarMascota(
-                "F-2", "Luna", Especie.PERRO, "",
-                LocalDate.now().minusYears(2));
+                Turno tercero = new Turno(
+                                max, null,
+                                List.of(new DetalleTurno(guarderia, 120)),
+                                fecha.atTime(11, 0));
 
-        Mascota max = ana.registrarMascota(
-                "F-3", "Max", Especie.PERRO, "",
-                LocalDate.now().minusYears(4));
+                for (int i = 4; i <= 11; i++) {
 
-        Guarderia guarderia = new Guarderia(
-                "Guarderia", new BigDecimal("15000"), 120, 1);
+                        Mascota mascota = ana.registrarMascota(
+                                        "F-" + i, "Mascota " + i, Especie.PERRO, "",
+                                        LocalDate.now().minusYears(3));
 
-        LocalDate fecha = LocalDate.now().plusDays(3);
+                        registro.registrar(new Turno(
+                                        mascota, null,
+                                        List.of(new DetalleTurno(guarderia, 360)),
+                                        fecha.atTime(8, 0)));
+                }
 
-        LocalDateTime ingreso = fecha.atTime(22, 0);
-        LocalDateTime salida = fecha.plusDays(1).atTime(2, 0);
+                registro.registrar(primero);
+                registro.registrar(segundo);
 
-        Turno primero = new Turno(
-                toby, null,
-                List.of(DetalleTurno.crearParaGuarderia(
-                        guarderia, ingreso, salida)),
-                ingreso);
+                primero.confirmar();
 
-        Turno segundo = new Turno(
-                luna, null,
-                List.of(new DetalleTurno(guarderia, 120)),
-                fecha.plusDays(1).atTime(1, 0));
+                assertEquals(10, registro.calcularOcupacionMaxima(
+                                guarderia, fecha.atTime(11, 0), fecha.atTime(13, 0)));
 
-        Turno tercero = new Turno(
-                max, null,
-                List.of(new DetalleTurno(guarderia, 120)),
-                salida);
+                assertThrows(DatosInvalidosException.class,
+                                () -> registro.registrar(tercero));
 
-        assertDoesNotThrow(() -> registro.registrar(primero));
+                segundo.cancelar(ahora);
 
-        assertEquals(1, registro.calcularOcupacionMaxima(
-                guarderia,
-                fecha.plusDays(1).atTime(0, 0),
-                salida));
+                assertEquals(EstadoTurno.CANCELADO, segundo.getEstado());
 
-        assertThrows(DatosInvalidosException.class,
-                () -> registro.registrar(segundo));
+                assertEquals(9, registro.calcularOcupacionMaxima(
+                                guarderia, fecha.atTime(11, 0), fecha.atTime(13, 0)));
 
-        assertDoesNotThrow(() -> registro.registrar(tercero));
+                assertDoesNotThrow(() -> registro.registrar(tercero));
 
-        assertEquals(2, registro.getTurnos().size());
+                assertEquals(10, registro.calcularOcupacionMaxima(
+                                guarderia, fecha.atTime(11, 0), fecha.atTime(13, 0)));
 
-        assertFalse(registro.getTurnos().contains(segundo));
-    }
+                assertEquals(11, registro.getTurnos().size());
+        }
 
-    @Test
-    void cancelarTurnoLiberaCapacidadSimultanea() {
+        @Test
+        void distintasGuarderiasCompartenLosDiezLugares() {
+                RegistroTurnos registro = new RegistroTurnos();
 
-        RegistroTurnos registro = new RegistroTurnos();
+                Cliente ana = new Cliente(
+                                "Ana", "Pérez", "123", "123456", "");
 
-        Cliente ana = new Cliente(
-                "Ana", "Perez", "123", "123456", "");
+                Guarderia primera = new Guarderia(
+                                "Guardería A", new BigDecimal("15000"), 300, 10);
 
-        Mascota toby = ana.registrarMascota(
-                "F-1", "Toby", Especie.PERRO, "",
-                LocalDate.now().minusYears(3));
+                Guarderia segunda = new Guarderia(
+                                "Guardería B", new BigDecimal("18000"), 300, 10);
 
-        Mascota luna = ana.registrarMascota(
-                "F-2", "Luna", Especie.PERRO, "",
-                LocalDate.now().minusYears(2));
+                LocalDateTime inicio = LocalDate.now().plusDays(3).atTime(9, 0);
 
-        Mascota max = ana.registrarMascota(
-                "F-3", "Max", Especie.PERRO, "",
-                LocalDate.now().minusYears(4));
+                for (int i = 1; i <= 10; i++) {
+                        Mascota mascota = ana.registrarMascota(
+                                        "F-" + i, "Mascota " + i, Especie.PERRO, "",
+                                        LocalDate.now().minusYears(2));
 
-        Guarderia guarderia = new Guarderia(
-                "Guarderia", new BigDecimal("15000"), 120, 2);
+                        Turno turno = new Turno(
+                                        mascota, null,
+                                        List.of(new DetalleTurno(primera)),
+                                        inicio);
 
-        LocalDateTime ahora = LocalDateTime.now();
-        LocalDate fecha = ahora.toLocalDate().plusDays(3);
+                        registro.registrar(turno);
+                }
 
-        Turno primero = new Turno(
-                toby, null,
-                List.of(new DetalleTurno(guarderia, 240)),
-                fecha.atTime(8, 0));
+                Mascota adicional = ana.registrarMascota(
+                                "F-11", "Adicional", Especie.GATO, "",
+                                LocalDate.now().minusYears(2));
 
-        Turno segundo = new Turno(
-                luna, null,
-                List.of(new DetalleTurno(guarderia, 240)),
-                fecha.atTime(10, 0));
+                Turno undécimo = new Turno(
+                                adicional, null,
+                                List.of(new DetalleTurno(segunda)),
+                                inicio);
 
-        Turno tercero = new Turno(
-                max, null,
-                List.of(new DetalleTurno(guarderia, 120)),
-                fecha.atTime(11, 0));
+                assertThrows(DatosInvalidosException.class,
+                                () -> registro.registrar(undécimo));
 
-        registro.registrar(primero);
-        registro.registrar(segundo);
+                assertEquals(10, registro.getTurnos().size());
+        }
 
-        primero.confirmar();
-
-        assertEquals(2, registro.calcularOcupacionMaxima(
-                guarderia,
-                fecha.atTime(11, 0),
-                fecha.atTime(13, 0)));
-
-        assertThrows(DatosInvalidosException.class,
-                () -> registro.registrar(tercero));
-
-        segundo.cancelar(ahora);
-
-        assertEquals(EstadoTurno.CANCELADO,
-                segundo.getEstado());
-
-        assertEquals(1, registro.calcularOcupacionMaxima(
-                guarderia,
-                fecha.atTime(11, 0),
-                fecha.atTime(13, 0)));
-
-        assertDoesNotThrow(() -> registro.registrar(tercero));
-
-        assertEquals(2, registro.calcularOcupacionMaxima(
-                guarderia,
-                fecha.atTime(11, 0),
-                fecha.atTime(13, 0)));
-
-        assertEquals(3, registro.getTurnos().size());
-    }
 }

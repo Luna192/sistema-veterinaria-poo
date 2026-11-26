@@ -6,12 +6,17 @@ import java.math.BigDecimal;
 public class Guarderia extends Servicio {
     private final int cupoMaximo;
 
-    public Guarderia(String nombre, BigDecimal precioBase, int duracionMinutos, int cupoMaximo) {
-        super(nombre, precioBase, duracionMinutos);
-        if (cupoMaximo <= 0) {
-            throw new DatosInvalidosException("El cupo máximo debe ser mayor que cero.");
-        }
-        this.cupoMaximo = cupoMaximo;
+    public Guarderia(String nombre, BigDecimal precioBase,
+                 int duracionMinutos, int cupoMaximo) {
+    super(nombre, precioBase, duracionMinutos);
+
+    if (cupoMaximo != 10) {
+        throw new DatosInvalidosException(
+            "El cupo máximo de guardería debe ser de 10 mascotas."
+        );
+    }
+
+    this.cupoMaximo = cupoMaximo;
     }
 
     public int getCupoMaximo() {

@@ -87,7 +87,7 @@ public class RegistroTurnos {
 
             for (DetalleTurno detalle : turno.getDetalles()) {
 
-                if (detalle.getServicio() != guarderia) {
+                if (!(detalle.getServicio() instanceof Guarderia)) {
                     continue;
                 }
 
@@ -132,6 +132,11 @@ public class RegistroTurnos {
                 LocalDateTime inicio = nuevo.calcularInicioDetalle(detalle);
 
                 LocalDateTime fin = inicio.plusMinutes(detalle.getDuracionMinutos());
+
+                if (!inicio.toLocalDate().equals(fin.toLocalDate())) {
+                    throw new DatosInvalidosException(
+                            "El ingreso y la salida de guardería deben ser el mismo día.");
+                }
 
                 int ocupacionMaxima = calcularOcupacionMaxima(
                         guarderia, inicio, fin);
