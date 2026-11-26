@@ -3,6 +3,8 @@ package com.veterinaria.modelo;
 import com.veterinaria.modelo.excepciones.DatosInvalidosException;
 import java.math.BigDecimal;
 import java.util.Optional;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 public class DetalleTurno {
     private final Servicio servicio;
@@ -32,8 +34,7 @@ public class DetalleTurno {
         }
         if (!(servicio instanceof Guarderia)) {
             throw new DatosInvalidosException(
-                "La duración personalizada solo está permitida para servicios de guardería."
-            );
+                    "La duración personalizada solo está permitida para servicios de guardería.");
         }
         this.servicio = servicio;
         this.precioCongelado = servicio.calcularImporte();
@@ -82,30 +83,58 @@ public class DetalleTurno {
             throw new DatosInvalidosException("La aplicación de vacuna es obligatoria.");
         }
 
-        if(this.aplicacionVacuna != null) {
+        if (this.aplicacionVacuna != null) {
             throw new DatosInvalidosException("Ya existe una aplicación de vacuna vinculada a este detalle de turno.");
         }
-        
+
         this.aplicacionVacuna = aplicacionVacuna;
     }
 
     void validarDisponibleParaAsignacion() {
-    if (turno != null) {
-        throw new DatosInvalidosException(
-            "El detalle ya pertenece a un turno."
-            );
+        if (turno != null) {
+            throw new DatosInvalidosException(
+                    "El detalle ya pertenece a un turno.");
         }
     }
 
     void asignarTurno(Turno turno) {
         if (turno == null) {
             throw new DatosInvalidosException(
-                "El turno es obligatorio."
-            );
+                    "El turno es obligatorio.");
         }
 
         validarDisponibleParaAsignacion();
         this.turno = turno;
     }
 
+    public static DetalleTurno crearParaGuarderia(
+            Guarderia guarderia,
+            LocalDateTime ingreso,
+            LocalDateTime salida) {
+
+        if (ingreso == null || salida == null) {
+            throw new DatosInvalidosException(
+                    "El ingreso y la salida son obligatorios.");
+        }
+
+        if (!salida.isAfter(ingreso)) {
+            throw new DatosInvalidosException(
+                    "La salida debe ser posterior al ingreso.");
+        }
+
+        if (ingreso.getSecond() != 0 || ingreso.getNano() != 0
+                || salida.getSecond() != 0 || salida.getNano() != 0) {
+            throw new DatosInvalidosException(
+                    "Los horarios deben indicarse con precisión de minutos.");
+        }
+
+        long minutos = Duration.between(ingreso, salida).toMinutes();
+
+        if (minutos > Integer.MAX_VALUE) {
+            throw new DatosInvalidosException(
+                    "La duración de la estadía es demasiado grande.");
+        }
+
+        return new DetalleTurno(guarderia, (int) minutos);
+    }
 }
