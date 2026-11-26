@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.TreeMap;
+import com.veterinaria.modelo.excepciones.EntidadInactivaException;
 
 public class RegistroTurnos {
     private final List<Turno> turnos = new ArrayList<>();
@@ -21,6 +22,11 @@ public class RegistroTurnos {
         if (nuevo == null) {
             throw new DatosInvalidosException(
                     "El turno es obligatorio.");
+        }
+
+        if (!nuevo.getMascota().estaActiva()) {
+            throw new EntidadInactivaException(
+                    "No se puede registrar un turno para una mascota dada de baja.");
         }
 
         if (turnos.contains(nuevo)) {

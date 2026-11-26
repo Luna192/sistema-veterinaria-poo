@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+import com.veterinaria.modelo.excepciones.EntidadInactivaException;
 
 class RegistroTurnosTest {
 
@@ -812,6 +813,33 @@ class RegistroTurnosTest {
                                 () -> registro.registrar(undécimo));
 
                 assertEquals(10, registro.getTurnos().size());
+        }
+
+        @Test
+        void rechazaTurnoSiMascotaFueDadaDeBajaAntesDeRegistrarlo() {
+                RegistroTurnos registro = new RegistroTurnos();
+
+                Cliente ana = new Cliente(
+                                "Ana", "Perez", "123", "123456", "");
+
+                Mascota toby = ana.registrarMascota(
+                                "F-1", "Toby", Especie.PERRO, "",
+                                LocalDate.now().minusYears(3));
+
+                Peluqueria servicio = new Peluqueria(
+                                "Peluqueria", new BigDecimal("15000"), 30);
+
+                Turno turno = new Turno(
+                                toby, null,
+                                List.of(new DetalleTurno(servicio)),
+                                LocalDateTime.now().plusDays(3));
+
+                toby.darDeBaja();
+
+                assertThrows(EntidadInactivaException.class,
+                                () -> registro.registrar(turno));
+
+                assertTrue(registro.getTurnos().isEmpty());
         }
 
 }

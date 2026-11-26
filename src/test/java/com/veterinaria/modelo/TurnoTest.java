@@ -13,50 +13,39 @@ class TurnoTest {
     @Test
     void rechazaDetalleCompartidoSinOcuparLosDetallesLibres() {
         Cliente ana = new Cliente(
-            "Ana", "Pérez", "123", "123456", ""
-        );
+                "Ana", "Pérez", "123", "123456", "");
 
         Mascota toby = ana.registrarMascota(
-            "F-1", "Toby", Especie.PERRO, "",
-            LocalDate.now().minusYears(3)
-        );
+                "F-1", "Toby", Especie.PERRO, "",
+                LocalDate.now().minusYears(3));
 
         Vacunacion primerServicio = new Vacunacion(
-            "Vacunación", new BigDecimal("15000"), 15
-        );
+                "Vacunación", new BigDecimal("15000"), 15);
 
         Vacunacion segundoServicio = new Vacunacion(
-            "Otra vacunación", new BigDecimal("18000"), 20
-        );
+                "Otra vacunación", new BigDecimal("18000"), 20);
 
         Veterinario veterinario = new Veterinario(
-            "MAT-123", "Laura", "Sosa"
-        );
+                "MAT-123", "Laura", "Sosa");
 
         DetalleTurno ocupado = new DetalleTurno(primerServicio);
         DetalleTurno libre = new DetalleTurno(segundoServicio);
 
-        LocalDateTime inicio =
-            LocalDate.now().plusDays(1).atTime(10, 0);
+        LocalDateTime inicio = LocalDate.now().plusDays(1).atTime(10, 0);
 
         Turno primero = new Turno(
-            toby, veterinario, List.of(ocupado), inicio
-        );
+                toby, veterinario, List.of(ocupado), inicio);
 
         assertThrows(DatosInvalidosException.class,
-            () -> new Turno(
-                toby, veterinario,
-                List.of(libre, ocupado),
-                inicio.plusHours(1)
-            )
-        );
+                () -> new Turno(
+                        toby, veterinario,
+                        List.of(libre, ocupado),
+                        inicio.plusHours(1)));
 
         Turno segundo = assertDoesNotThrow(
-            () -> new Turno(
-                toby, veterinario, List.of(libre),
-                inicio.plusHours(2)
-            )
-        );
+                () -> new Turno(
+                        toby, veterinario, List.of(libre),
+                        inicio.plusHours(2)));
 
         assertEquals(1, primero.getDetalles().size());
         assertSame(ocupado, primero.getDetalles().get(0));
@@ -66,127 +55,99 @@ class TurnoTest {
     @Test
     void calculaHorariosConsecutivosDeLosServicios() {
         Cliente ana = new Cliente(
-            "Ana", "Pérez", "123", "123456", ""
-        );
+                "Ana", "Pérez", "123", "123456", "");
 
         Mascota toby = ana.registrarMascota(
-            "F-1", "Toby", Especie.PERRO, "",
-            LocalDate.now().minusYears(3)
-        );
+                "F-1", "Toby", Especie.PERRO, "",
+                LocalDate.now().minusYears(3));
 
         Veterinario veterinario = new Veterinario(
-            "MAT-123", "Laura", "Sosa"
-        );
+                "MAT-123", "Laura", "Sosa");
 
         DetalleTurno consulta = new DetalleTurno(
-            new ConsultaMedica(
-                "Consulta", new BigDecimal("20000"), 30
-            )
-        );
+                new ConsultaMedica(
+                        "Consulta", new BigDecimal("20000"), 30));
 
         DetalleTurno vacunacion = new DetalleTurno(
-            new Vacunacion(
-                "Vacunación", new BigDecimal("15000"), 15
-            )
-        );
+                new Vacunacion(
+                        "Vacunación", new BigDecimal("15000"), 15));
 
         DetalleTurno peluqueria = new DetalleTurno(
-            new Peluqueria(
-                "Peluquería", new BigDecimal("10000"), 45
-            )
-        );
+                new Peluqueria(
+                        "Peluquería", new BigDecimal("10000"), 45));
 
-        LocalDateTime inicio =
-            LocalDate.now().plusDays(1).atTime(10, 0);
+        LocalDateTime inicio = LocalDate.now().plusDays(1).atTime(10, 0);
 
         Turno turno = new Turno(
-            toby, veterinario,
-            List.of(consulta, vacunacion, peluqueria),
-            inicio
-        );
+                toby, veterinario,
+                List.of(consulta, vacunacion, peluqueria),
+                inicio);
 
         assertEquals(inicio, turno.calcularInicioDetalle(consulta));
         assertEquals(
-            inicio.plusMinutes(30),
-            turno.calcularFinDetalle(consulta)
-        );
+                inicio.plusMinutes(30),
+                turno.calcularFinDetalle(consulta));
 
         assertEquals(
-            inicio.plusMinutes(30),
-            turno.calcularInicioDetalle(vacunacion)
-        );
+                inicio.plusMinutes(30),
+                turno.calcularInicioDetalle(vacunacion));
         assertEquals(
-            inicio.plusMinutes(45),
-            turno.calcularFinDetalle(vacunacion)
-        );
+                inicio.plusMinutes(45),
+                turno.calcularFinDetalle(vacunacion));
 
         assertEquals(
-            inicio.plusMinutes(45),
-            turno.calcularInicioDetalle(peluqueria)
-        );
+                inicio.plusMinutes(45),
+                turno.calcularInicioDetalle(peluqueria));
         assertEquals(
-            inicio.plusMinutes(90),
-            turno.calcularFinDetalle(peluqueria)
-        );
+                inicio.plusMinutes(90),
+                turno.calcularFinDetalle(peluqueria));
 
         assertEquals(90, turno.calcularDuracionTotal());
         assertEquals(
-            turno.calcularFinDetalle(peluqueria),
-            turno.calcularFechaHoraFin()
-        );
+                turno.calcularFinDetalle(peluqueria),
+                turno.calcularFechaHoraFin());
     }
 
-        @Test
-        void comparaSoloLosIntervalosQueRequierenVeterinario() {
+    @Test
+    void comparaSoloLosIntervalosQueRequierenVeterinario() {
         Cliente ana = new Cliente(
-            "Ana", "Pérez", "123", "123456", ""
-        );
+                "Ana", "Pérez", "123", "123456", "");
 
         Mascota toby = ana.registrarMascota(
-            "F-1", "Toby", Especie.PERRO, "",
-            LocalDate.now().minusYears(3)
-        );
+                "F-1", "Toby", Especie.PERRO, "",
+                LocalDate.now().minusYears(3));
 
         Mascota luna = ana.registrarMascota(
-            "F-2", "Luna", Especie.GATO, "",
-            LocalDate.now().minusYears(2)
-        );
+                "F-2", "Luna", Especie.GATO, "",
+                LocalDate.now().minusYears(2));
 
         Veterinario veterinario = new Veterinario(
-            "MAT-123", "Laura", "Sosa"
-        );
+                "MAT-123", "Laura", "Sosa");
 
         ConsultaMedica consulta = new ConsultaMedica(
-            "Consulta", new BigDecimal("20000"), 30
-        );
+                "Consulta", new BigDecimal("20000"), 30);
 
         Peluqueria peluqueria = new Peluqueria(
-            "Peluquería", new BigDecimal("10000"), 60
-        );
+                "Peluquería", new BigDecimal("10000"), 60);
 
-        LocalDateTime inicio =
-            LocalDate.now().plusDays(2).atTime(10, 0);
+        LocalDateTime inicio = LocalDate.now().plusDays(2).atTime(10, 0);
 
         Turno primero = new Turno(
-            toby, veterinario,
-            List.of(
-                new DetalleTurno(consulta),
-                new DetalleTurno(peluqueria)
-            ),
-            inicio
-        );
+                toby, veterinario,
+                List.of(
+                        new DetalleTurno(consulta),
+                        new DetalleTurno(peluqueria)),
+                inicio);
 
         Turno superpuesto = new Turno(
-            luna, veterinario,
-            List.of(new DetalleTurno(consulta)),
-            inicio.plusMinutes(15)
-        );
+                luna, veterinario,
+                List.of(new DetalleTurno(consulta)),
+                inicio.plusMinutes(15));
 
         Turno contiguo = new Turno(
-            luna, veterinario,
-            List.of(new DetalleTurno(consulta)),
-            inicio.plusMinutes(30)
-        );
+                luna, veterinario,
+                List.of(new DetalleTurno(consulta)),
+                inicio.plusMinutes(30));
 
         assertTrue(primero.seSolapaVeterinarioCon(superpuesto));
         assertTrue(superpuesto.seSolapaVeterinarioCon(primero));
@@ -199,6 +160,37 @@ class TurnoTest {
         superpuesto.cancelar(inicio.minusDays(2));
 
         assertFalse(primero.seSolapaVeterinarioCon(superpuesto));
+    }
+
+    @Test
+    void rechazaDetalleNuloAlRegistrarResultado() {
+        Cliente ana = new Cliente(
+                "Ana", "Perez", "123", "123456", "");
+
+        Mascota toby = ana.registrarMascota(
+                "F-1", "Toby", Especie.PERRO, "",
+                LocalDate.now().minusYears(3));
+
+        Veterinario veterinario = new Veterinario(
+                "MAT-123", "Laura", "Sosa");
+
+        DetalleTurno detalle = new DetalleTurno(
+                new ConsultaMedica(
+                        "Consulta", new BigDecimal("20000"), 30));
+
+        Turno turno = new Turno(
+                toby, veterinario, List.of(detalle),
+                LocalDateTime.now().plusDays(3));
+
+        turno.confirmar();
+
+        assertThrows(DatosInvalidosException.class,
+                () -> turno.registrarResultado(
+                        null, "Sin alteraciones", ""));
+
+        assertTrue(detalle.getDiagnostico().isEmpty());
+        assertTrue(detalle.getTratamiento().isEmpty());
+        assertEquals(EstadoTurno.CONFIRMADO, turno.getEstado());
     }
 
 }

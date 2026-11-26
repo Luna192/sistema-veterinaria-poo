@@ -19,7 +19,7 @@ public class Turno implements Facturable {
     private final List<DetalleTurno> detalles;
 
     public Turno(Mascota mascota, Veterinario veterinario, List<DetalleTurno> detalles,
-                 LocalDateTime fechaHoraInicio) {
+            LocalDateTime fechaHoraInicio) {
         if (mascota == null) {
             throw new DatosInvalidosException("La mascota es obligatoria.");
         }
@@ -37,7 +37,7 @@ public class Turno implements Facturable {
         validarEspeciesAdmitidas(mascota, detalles);
         validarVeterinario(veterinario, detalles);
 
-        for (DetalleTurno detalle : detalles){
+        for (DetalleTurno detalle : detalles) {
             detalle.validarDisponibleParaAsignacion();
         }
 
@@ -63,7 +63,8 @@ public class Turno implements Facturable {
         if (estado != EstadoTurno.PENDIENTE && estado != EstadoTurno.CONFIRMADO) {
             throw new DatosInvalidosException("El turno no puede cancelarse en su estado actual.");
         }
-        if (fechaActual == null || Duration.between(fechaActual, fechaHoraInicio).compareTo(Duration.ofHours(24)) <= 0) {
+        if (fechaActual == null
+                || Duration.between(fechaActual, fechaHoraInicio).compareTo(Duration.ofHours(24)) <= 0) {
             throw new DatosInvalidosException("El turno solo puede cancelarse con más de 24 horas de anticipación.");
         }
         estado = EstadoTurno.CANCELADO;
@@ -75,8 +76,8 @@ public class Turno implements Facturable {
             throw new EntidadInactivaException("La mascota debe estar activa para marcar el turno como atendido.");
         }
         boolean faltaDiagnostico = detalles.stream()
-            .filter(detalle -> detalle.getServicio().requiereRegistroMedico())
-            .anyMatch(detalle -> detalle.getDiagnostico().isEmpty());
+                .filter(detalle -> detalle.getServicio().requiereRegistroMedico())
+                .anyMatch(detalle -> detalle.getDiagnostico().isEmpty());
         if (faltaDiagnostico) {
             throw new DatosInvalidosException("Debe registrarse el diagnóstico de la consulta médica.");
         }
@@ -99,31 +100,29 @@ public class Turno implements Facturable {
     }
 
     public LocalDateTime calcularInicioDetalle(DetalleTurno detalle) {
-    if (detalle == null || !detalles.contains(detalle)) {
-        throw new DatosInvalidosException(
-            "El detalle no pertenece al turno."
-        );
-    }
+        if (detalle == null || !detalles.contains(detalle)) {
+            throw new DatosInvalidosException(
+                    "El detalle no pertenece al turno.");
+        }
 
-    LocalDateTime inicio = fechaHoraInicio;
+        LocalDateTime inicio = fechaHoraInicio;
 
-    for (DetalleTurno actual : detalles) {
-        if (actual == detalle) {
-            return inicio;
+        for (DetalleTurno actual : detalles) {
+            if (actual == detalle) {
+                return inicio;
             }
 
-        inicio = inicio.plusMinutes(actual.getDuracionMinutos());
+            inicio = inicio.plusMinutes(actual.getDuracionMinutos());
         }
 
         throw new DatosInvalidosException(
-            "El detalle no pertenece al turno."
-        );
+                "El detalle no pertenece al turno.");
     }
 
     public LocalDateTime calcularFinDetalle(DetalleTurno detalle) {
         return calcularInicioDetalle(detalle)
-            .plusMinutes(detalle.getDuracionMinutos());
-}
+                .plusMinutes(detalle.getDuracionMinutos());
+    }
 
     public boolean seSolapaCon(Turno otroTurno) {
         if (otroTurno == null || !ocupaHorario() || !otroTurno.ocupaHorario()) {
@@ -134,41 +133,39 @@ public class Turno implements Facturable {
     }
 
     public boolean seSolapaVeterinarioCon(Turno otroTurno) {
-    if (otroTurno == null
-            || !ocupaHorario()
-            || !otroTurno.ocupaHorario()
-            || veterinario == null
-            || veterinario != otroTurno.veterinario) {
-        return false;
-    }
-
-    for (DetalleTurno propio : detalles) {
-        if (!propio.getServicio().requiereVeterinario()) {
-            continue;
+        if (otroTurno == null
+                || !ocupaHorario()
+                || !otroTurno.ocupaHorario()
+                || veterinario == null
+                || veterinario != otroTurno.veterinario) {
+            return false;
         }
 
-        LocalDateTime inicioPropio = calcularInicioDetalle(propio);
-        LocalDateTime finPropio = calcularFinDetalle(propio);
-
-        for (DetalleTurno ajeno : otroTurno.detalles) {
-            if (!ajeno.getServicio().requiereVeterinario()) {
+        for (DetalleTurno propio : detalles) {
+            if (!propio.getServicio().requiereVeterinario()) {
                 continue;
             }
 
-            LocalDateTime inicioAjeno =
-                otroTurno.calcularInicioDetalle(ajeno);
-            LocalDateTime finAjeno =
-                otroTurno.calcularFinDetalle(ajeno);
+            LocalDateTime inicioPropio = calcularInicioDetalle(propio);
+            LocalDateTime finPropio = calcularFinDetalle(propio);
 
-            if (inicioPropio.isBefore(finAjeno)
-                    && inicioAjeno.isBefore(finPropio)) {
-                return true;
+            for (DetalleTurno ajeno : otroTurno.detalles) {
+                if (!ajeno.getServicio().requiereVeterinario()) {
+                    continue;
+                }
+
+                LocalDateTime inicioAjeno = otroTurno.calcularInicioDetalle(ajeno);
+                LocalDateTime finAjeno = otroTurno.calcularFinDetalle(ajeno);
+
+                if (inicioPropio.isBefore(finAjeno)
+                        && inicioAjeno.isBefore(finPropio)) {
+                    return true;
+                }
             }
         }
-    }
 
-    return false;
-}
+        return false;
+    }
 
     public boolean ocupaHorario() {
         return estado != EstadoTurno.CANCELADO;
@@ -179,7 +176,7 @@ public class Turno implements Facturable {
         if (!mascota.estaActiva()) {
             throw new EntidadInactivaException("La mascota debe estar activa para registrar resultados.");
         }
-        if (!detalles.contains(detalle)) {
+        if (detalle == null || !detalles.contains(detalle)) {
             throw new DatosInvalidosException("El detalle no pertenece al turno.");
         }
         if (!detalle.getServicio().requiereRegistroMedico()) {
@@ -189,11 +186,11 @@ public class Turno implements Facturable {
     }
 
     public AplicacionVacuna registrarVacunacion(DetalleTurno detalle, Vacuna vacuna, LocalDate fecha,
-        Optional<AplicacionVacuna> ultimaAplicacion) {
+            Optional<AplicacionVacuna> ultimaAplicacion) {
 
         exigirEstado(
-            EstadoTurno.CONFIRMADO, "Solo un turno confirmado puede registrar vacunaciones.");
-        
+                EstadoTurno.CONFIRMADO, "Solo un turno confirmado puede registrar vacunaciones.");
+
         if (detalle == null || !detalles.contains(detalle)) {
             throw new DatosInvalidosException("El detalle no pertenece al turno.");
         }
@@ -222,14 +219,13 @@ public class Turno implements Facturable {
             AplicacionVacuna anterior = ultimaAplicacion.get();
 
             if (anterior.getMascota() != mascota
-                || anterior.getVacuna() != vacuna) {
-                throw new DatosInvalidosException("La aplicación anterior debe corresponder a la misma mascota y vacuna.");
+                    || anterior.getVacuna() != vacuna) {
+                throw new DatosInvalidosException(
+                        "La aplicación anterior debe corresponder a la misma mascota y vacuna.");
             }
 
             anterior.validarNuevaAplicacion(fecha);
         }
-
-        
 
         AplicacionVacuna nuevaAplicacion = new AplicacionVacuna(mascota, vacuna, veterinario, fecha);
         detalle.vincularAplicacionVacuna(nuevaAplicacion);
@@ -281,8 +277,7 @@ public class Turno implements Facturable {
             Servicio servicio = detalle.getServicio();
             if (!servicio.admiteEspecie(especie)) {
                 throw new DatosInvalidosException(
-                    "El servicio " + servicio.getNombre() + " no admite la especie " + especie + "."
-                );
+                        "El servicio " + servicio.getNombre() + " no admite la especie " + especie + ".");
             }
         }
     }
